@@ -1,0 +1,120 @@
+{
+  "expo": {
+    "name": "Lote",
+    "slug": "lote",
+    "scheme": "lote",
+    "version": "1.0.0",
+    "orientation": "default",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "description": "Renomeador de arquivos em lote para celulares e tablets.",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.gwin14.lote",
+      "icon": {
+        "light": "./assets/icon.png",
+        "dark": "./assets/icon-dark.png",
+        "tinted": "./assets/icon-tinted.png"
+      },
+      "infoPlist": {
+        "UIFileSharingEnabled": true,
+        "LSSupportsOpeningDocumentsInPlace": true,
+        "CFBundleDisplayName": "Lote",
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "entitlements": {
+        "com.apple.security.application-groups": ["group.com.gwin14.lote"]
+      }
+    },
+    "android": {
+      "package": "com.gwin14.lote",
+      "adaptiveIcon": {
+        "backgroundColor": "#D9480F",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": true
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "output": "single"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 96,
+          "resizeMode": "contain",
+          "backgroundColor": "#F2F2F7",
+          "dark": { "image": "./assets/splash-icon.png", "backgroundColor": "#000000" }
+        }
+      ],
+      [
+        "expo-sharing",
+        {
+          "ios": {
+            "enabled": true,
+            "appGroupId": "group.com.gwin14.lote",
+            "activationRule": {
+              "supportsImageWithMaxCount": 500,
+              "supportsMovieWithMaxCount": 100,
+              "supportsFileWithMaxCount": 500
+            }
+          },
+          "android": {
+            "enabled": true,
+            "singleShareMimeTypes": ["image/*", "video/*", "audio/*", "application/*", "text/*"],
+            "multipleShareMimeTypes": ["image/*", "video/*", "audio/*", "application/*", "text/*", "*/*"]
+          }
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "O Lote acessa as fotos que você escolher para renomeá-las.",
+          "cameraPermission": "O Lote usa a câmera para tirar fotos já com o nome certo."
+        }
+      ],
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "O Lote acessa suas fotos para renomeá-las.",
+          "savePhotosPermission": "O Lote salva nas Fotos as cópias renomeadas que você escolher.",
+          "isAccessMediaLocationEnabled": true
+        }
+      ],
+      "expo-quick-actions",
+      "@bacons/apple-targets",
+      [
+        "react-native-android-widget",
+        {
+          "widgets": [
+            {
+              "name": "Lote",
+              "label": "Lote",
+              "description": "Renomeie fotos e arquivos com um toque",
+              "minWidth": "180dp",
+              "minHeight": "110dp",
+              "targetCellWidth": 3,
+              "targetCellHeight": 2,
+              "maxResizeWidth": "420dp",
+              "maxResizeHeight": "220dp",
+              "resizeMode": "horizontal|vertical",
+              "widgetCategory": "home_screen|keyguard",
+              "previewImage": "./assets/widget-preview.png",
+              "updatePeriodMillis": 1800000
+            }
+          ]
+        }
+      ],
+      "expo-font",
+      "expo-image",
+      "expo-status-bar"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
