@@ -10,12 +10,9 @@
     "description": "Renomeador de arquivos em lote para celulares e tablets.",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.gwin14.lote",
-      "icon": {
-        "light": "./assets/icon.png",
-        "dark": "./assets/icon-dark.png",
-        "tinted": "./assets/icon-tinted.png"
-      },
+      "bundleIdentifier": "com.fabiosantos.lote",
+      "appleTeamId": "77MXYLFJ7J",
+      "icon": "./assets/lote.icon",
       "infoPlist": {
         "UIFileSharingEnabled": true,
         "LSSupportsOpeningDocumentsInPlace": true,
@@ -23,7 +20,7 @@
         "ITSAppUsesNonExemptEncryption": false
       },
       "entitlements": {
-        "com.apple.security.application-groups": ["group.com.gwin14.lote"]
+        "com.apple.security.application-groups": ["group.com.fabiosantos.lote"]
       }
     },
     "android": {
@@ -56,7 +53,7 @@
         {
           "ios": {
             "enabled": true,
-            "appGroupId": "group.com.gwin14.lote",
+            "appGroupId": "group.com.fabiosantos.lote",
             "activationRule": {
               "supportsImageWithMaxCount": 500,
               "supportsMovieWithMaxCount": 100,

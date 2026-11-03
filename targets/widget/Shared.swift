@@ -1,7 +1,7 @@
 import SwiftUI
 import WidgetKit
 
-/// Snapshot written by the app through ExtensionStorage (App Group "group.com.gwin14.lote").
+/// Snapshot written by the app through ExtensionStorage (App Group "group.com.fabiosantos.lote").
 struct LoteEntry: TimelineEntry {
   let date: Date
   let totalRenamed: Int
@@ -12,7 +12,7 @@ struct LoteEntry: TimelineEntry {
   let quickPresetName: String
   let pendingFiles: Int
 
-  static let appGroup = "group.com.gwin14.lote"
+  static let appGroup = "group.com.fabiosantos.lote"
 
   static func load() -> LoteEntry {
     let d = UserDefaults(suiteName: appGroup)

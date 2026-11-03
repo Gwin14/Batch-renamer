@@ -17,7 +17,7 @@ struct OpenQuickRenameIntent: AppIntent {
 
 /// iOS 18 control: Control Center, Lock Screen bottom buttons and the Action button.
 struct LoteRenameControl: ControlWidget {
-  static let kind = "com.gwin14.lote.control.rename"
+  static let kind = "com.fabiosantos.lote.control.rename"
 
   var body: some ControlWidgetConfiguration {
     StaticControlConfiguration(kind: Self.kind) {

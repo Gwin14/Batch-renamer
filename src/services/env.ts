@@ -9,5 +9,5 @@ export const isAndroid = process.env.EXPO_OS === 'android';
 /** Native-only integrations (widgets, quick actions, share extension) need a dev/production build. */
 export const hasCustomNative = !isExpoGo && !isWeb;
 
-export const APP_GROUP = 'group.com.gwin14.lote';
+export const APP_GROUP = 'group.com.fabiosantos.lote';
 export const APP_SCHEME = 'lote';

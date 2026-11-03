@@ -19,7 +19,7 @@ npx expo run:ios      # ou: npx expo run:android
 # ou na nuvem: npx eas-cli@latest build --profile development
 ```
 
-> iOS: defina `ios.appleTeamId` no `app.json` e registre o App Group `group.com.gwin14.lote` no seu time da Apple (o EAS Build faz isso sozinho).
+> iOS: defina `ios.appleTeamId` no `app.json` e registre o App Group `group.com.fabiosantos.lote` no seu time da Apple (o EAS Build faz isso sozinho).
 
 ## Funcionalidades
 
