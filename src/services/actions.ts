@@ -39,8 +39,8 @@ export type ImportKind = 'photos' | 'files' | 'camera' | 'folder';
 
 export function computePreview(now = Date.now()): PreviewSummary {
   const { files, rules } = useStudio.getState();
-  const { conflict } = useSettings.getState();
-  return runPipeline({ files, rules, options: { conflict, protectExtension: true, now }, occupied: occupiedNames(files) });
+  const { conflict, keepPairs } = useSettings.getState();
+  return runPipeline({ files, rules, options: { conflict, protectExtension: true, keepPairs, now }, occupied: occupiedNames(files) });
 }
 
 const folderLabel = (uri: string) => (uri === libraryRoot() ? LIBRARY_DIR : displayName(uri));

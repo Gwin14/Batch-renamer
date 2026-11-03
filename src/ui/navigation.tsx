@@ -9,16 +9,19 @@ type ResolvedOptions = Exclude<StackOptions, (...args: never[]) => unknown>;
 
 const isIOS = process.env.EXPO_OS === 'ios';
 
-/** Native large-title headers that collapse on scroll (iOS), solid Material header elsewhere. */
+/**
+ * Native large-title headers that collapse on scroll (iOS), solid Material header elsewhere.
+ * The bar is opaque in the page color: a transparent bar on iOS 26 drops the blur and leaves the
+ * collapsed title floating over the content. A hairline appears only once the title collapses.
+ */
 export function tabStackOptions(t: Theme): ResolvedOptions {
   return {
     headerLargeTitleEnabled: true,
-    headerTransparent: isIOS,
-    headerBlurEffect: isIOS ? (t.scheme === 'dark' ? 'systemChromeMaterialDark' : 'systemChromeMaterialLight') : undefined,
-    headerShadowVisible: false,
+    headerTransparent: false,
+    headerShadowVisible: isIOS,
     headerLargeTitleShadowVisible: false,
-    headerLargeStyle: { backgroundColor: isIOS ? 'transparent' : t.bg },
-    headerStyle: isIOS ? undefined : { backgroundColor: t.bg },
+    headerLargeStyle: { backgroundColor: t.bg },
+    headerStyle: { backgroundColor: t.bg },
     headerTitleStyle: { color: t.label },
     headerLargeTitleStyle: { color: t.label },
     headerTintColor: t.accent,

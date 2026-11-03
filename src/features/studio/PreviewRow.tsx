@@ -62,7 +62,7 @@ export const PreviewRow = memo(function PreviewRow({ item, showDiff }: { item: P
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={changed ? `${item.from}, vai virar ${item.to}` : `${item.from}, sem alterações`}
+      accessibilityLabel={`${changed ? `${item.from}, vai virar ${item.to}` : `${item.from}, sem alterações`}${item.pairedWith ? `, acompanha ${item.pairedWith}` : ''}`}
       onPress={() => openFileActions(item)}
       onLongPress={() => {
         haptics.rigid();
@@ -81,6 +81,14 @@ export const PreviewRow = memo(function PreviewRow({ item, showDiff }: { item: P
           </View>
         ) : null}
         <NameDiff from={item.from} to={item.to} showDiff={showDiff} dim={!changed} />
+        {item.pairedWith || item.companions ? (
+          <View style={styles.folderLine}>
+            <Icon sf="link" md="link" size={11} color={t.secondary} />
+            <Text variant="caption" tone="secondary" numberOfLines={1} ellipsizeMode="middle" style={{ flexShrink: 1 }}>
+              {item.pairedWith ? `Acompanha ${item.pairedWith}` : item.companions === 1 ? '1 arquivo vinculado' : `${item.companions} arquivos vinculados`}
+            </Text>
+          </View>
+        ) : null}
         {changed ? (
           <Text variant="footnote" tone="tertiary" numberOfLines={1} ellipsizeMode="middle">
             {item.message && item.status !== 'resolved' ? item.message : item.from}

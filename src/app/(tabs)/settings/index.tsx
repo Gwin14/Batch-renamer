@@ -58,6 +58,13 @@ export default function SettingsScreen() {
           }
         />
         <SwitchRow title="Revisar antes de renomear" subtitle="Mostra o resumo e os conflitos antes de aplicar" value={s.confirmBeforeApply} onValueChange={(v) => s.set({ confirmBeforeApply: v })} icon={{ sf: 'checklist', md: 'checklist' }} />
+        <SwitchRow
+          title="Manter pares de arquivos"
+          subtitle="Arquivos com o mesmo nome e extensões diferentes (ex.: .heic + .photo, .cr2 + .xmp) recebem o mesmo novo nome"
+          value={s.keepPairs}
+          onValueChange={(v) => s.set({ keepPairs: v })}
+          icon={{ sf: 'link', md: 'link' }}
+        />
         <SwitchRow title="Incluir subpastas" subtitle="Ao abrir uma pasta do aparelho" value={s.includeSubfolders} onValueChange={(v) => s.set({ includeSubfolders: v })} icon={{ sf: 'folder.badge.questionmark', md: 'account_tree' }} />
       </Section>
 

@@ -5,7 +5,7 @@ import { Pressable, RefreshControl, StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown, FadeOutDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { formatBytes, naturalCompare } from '@/engine/text';
+import { formatBytes, naturalCompare, splitName } from '@/engine/text';
 import { runImport } from '@/features/studio/importMenu';
 import { isWeb } from '@/services/env';
 import {
@@ -23,6 +23,7 @@ import {
   type Entry,
 } from '@/services/fs';
 import { haptics } from '@/services/haptics';
+import { useSettings } from '@/store/settings';
 import { useStudio } from '@/store/studio';
 import { confirmDestructive, showActions } from '@/ui/ActionSheet';
 import { EmptyState, FileThumb } from '@/ui/Domain';
@@ -35,8 +36,22 @@ import { radius, space, useTheme } from '@/ui/theme';
 
 const sortEntries = (a: Entry, b: Entry) => Number(b.isDirectory) - Number(a.isDirectory) || naturalCompare(a.name, b.name);
 
+/** Siblings that share a base name with the picked files (IMG_1.photo, IMG_1.HEIC.xmp…), so pairs travel together. */
+function withCompanions(entries: Entry[], folderUri: string): Entry[] {
+  const picked = entries.filter((e) => !e.isDirectory);
+  if (!picked.length || !useSettings.getState().keepPairs) return entries;
+  const lower = (s: string) => s.normalize('NFC').toLowerCase();
+  const stems = new Set(picked.flatMap((e) => [lower(splitName(e.name).base), lower(e.name)]));
+  const seen = new Set(entries.map((e) => e.uri));
+  const extra = listFolder(folderUri).filter((e) => {
+    if (e.isDirectory || seen.has(e.uri)) return false;
+    return stems.has(lower(splitName(e.name).base));
+  });
+  return [...entries, ...extra];
+}
+
 function sendToStudio(entries: Entry[], folderUri: string) {
-  const files = entries.flatMap((e) =>
+  const files = withCompanions(entries, folderUri).flatMap((e) =>
     e.isDirectory ? listFilesRecursive(e.uri, true).map(({ entry, folderUri: f }) => toFileItem(entry, f, 'library')) : [toFileItem(e, folderUri, 'library')],
   );
   const added = useStudio.getState().addFiles(files);

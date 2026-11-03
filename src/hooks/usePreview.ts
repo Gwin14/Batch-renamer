@@ -18,10 +18,11 @@ export function usePreview(now: number) {
   const files = useStudio((s) => s.files);
   const rules = useStudio((s) => s.rules);
   const conflict = useSettings((s) => s.conflict);
+  const keepPairs = useSettings((s) => s.keepPairs);
   const deferredRules = useDeferredValue(rules);
   const occupied = useMemo(() => occupiedNames(files), [files]);
   return useMemo(
-    () => runPipeline({ files, rules: deferredRules, options: { conflict, protectExtension: true, now }, occupied }),
-    [files, deferredRules, conflict, now, occupied],
+    () => runPipeline({ files, rules: deferredRules, options: { conflict, protectExtension: true, keepPairs, now }, occupied }),
+    [files, deferredRules, conflict, keepPairs, now, occupied],
   );
 }

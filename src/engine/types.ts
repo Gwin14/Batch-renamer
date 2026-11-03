@@ -181,6 +181,11 @@ export interface PipelineOptions {
   conflict: ConflictStrategy;
   /** keep extension untouched by name rules (default true) */
   protectExtension: boolean;
+  /**
+   * Keep file pairs in sync: files in the same folder that share a base name
+   * (IMG_1.HEIC + IMG_1.photo, IMG_1.CR2 + IMG_1.CR2.xmp) get the same new name.
+   */
+  keepPairs?: boolean;
   now?: number;
 }
 
@@ -195,6 +200,10 @@ export interface PreviewItem {
   subfolder: string;
   status: PreviewStatus;
   message?: string;
+  /** Original name of the file this one follows (set on sidecars / pair companions) */
+  pairedWith?: string;
+  /** How many companions follow this file (set on the pair's main file) */
+  companions?: number;
 }
 
 export interface PreviewSummary {

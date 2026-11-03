@@ -15,6 +15,8 @@ interface SettingsState {
   conflict: ConflictStrategy;
   confirmBeforeApply: boolean;
   includeSubfolders: boolean;
+  /** Rename files that share a base name (photo + .photo/.xmp/.aae sidecars) together */
+  keepPairs: boolean;
   importFolder: string;
   showDiff: boolean;
   /** Times the user completed a batch — drives tips and review prompt */
@@ -31,6 +33,7 @@ const DEFAULTS = {
   conflict: 'suffix' as ConflictStrategy,
   confirmBeforeApply: true,
   includeSubfolders: false,
+  keepPairs: true,
   importFolder: 'Importados',
   showDiff: true,
   batches: 0,

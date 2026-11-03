@@ -201,6 +201,50 @@ describe('conflicts', () => {
   });
 });
 
+describe('file pairs', () => {
+  const runPairs = (names: string[], rules: Rule[], occupied?: Map<string, Set<string>>) =>
+    runPipeline({ files: names.map((n) => file(n)), rules, options: { conflict: 'suffix', protectExtension: true, keepPairs: true, now: NOW }, occupied });
+
+  it('renames same-name files together and numbers pairs, not files', () => {
+    const res = runPairs(['IMG_1.HEIC', 'IMG_1.photo', 'IMG_2.HEIC', 'IMG_2.photo', 'IMG_2.AAE'], [rule('template', { template: 'Viagem_{n:2}' })]);
+    assert.deepEqual(
+      res.items.map((i) => i.to),
+      ['Viagem_01.HEIC', 'Viagem_01.photo', 'Viagem_02.HEIC', 'Viagem_02.photo', 'Viagem_02.AAE'],
+    );
+    assert.equal(res.items[0].companions, 1);
+    assert.equal(res.items[1].pairedWith, 'IMG_1.HEIC');
+    assert.equal(res.items[4].pairedWith, 'IMG_2.HEIC');
+  });
+
+  it('prefers a non-sidecar file as the lead, regardless of order', () => {
+    const res = runPairs(['IMG_1.xmp', 'IMG_1.CR2'], [rule('template', { template: '{ext}-x' })]);
+    assert.deepEqual(res.items.map((i) => i.to), ['CR2-x.xmp', 'CR2-x.CR2']);
+    assert.equal(res.items[0].pairedWith, 'IMG_1.CR2');
+  });
+
+  it('keeps full-name sidecars attached (IMG.CR2.xmp)', () => {
+    const res = runPairs(['IMG_1.CR2', 'IMG_1.CR2.xmp', 'IMG_1.JPG'], [rule('template', { template: 'Foto' }), rule('extension', { mode: 'lower' })]);
+    assert.deepEqual(res.items.map((i) => i.to), ['Foto.cr2', 'Foto.cr2.xmp', 'Foto.jpg']);
+  });
+
+  it('suffixes the whole pair when any member collides', () => {
+    const res = runPairs(['a.jpg', 'a.photo', 'b.jpg'], [rule('template', { template: 'foto' })], new Map([['file:///docs/Lote/Viagem', new Set(['foto.photo'])]]));
+    assert.deepEqual(res.items.map((i) => i.to), ['foto (2).jpg', 'foto (2).photo', 'foto.jpg']);
+  });
+
+  it('only pairs within the same folder and when enabled', () => {
+    const other = file('IMG_1.photo', { folderUri: 'file:///docs/Lote/Outra', uri: 'file:///docs/Lote/Outra/IMG_1.photo' });
+    const res = runPipeline({
+      files: [file('IMG_1.HEIC'), other],
+      rules: [rule('template', { template: 'x{n}' })],
+      options: { conflict: 'suffix', protectExtension: true, keepPairs: true, now: NOW },
+    });
+    assert.deepEqual(res.items.map((i) => i.to), ['x1.HEIC', 'x2.photo']);
+    const off = run(['IMG_1.HEIC', 'IMG_1.photo'], [rule('template', { template: 'x{n}' })]);
+    assert.deepEqual(off.items.map((i) => i.to), ['x1.HEIC', 'x2.photo']);
+  });
+});
+
 describe('presets & diff', () => {
   it('built-in presets all run', () => {
     for (const p of builtInPresets()) {
