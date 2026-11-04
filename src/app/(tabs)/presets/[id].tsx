@@ -2,6 +2,7 @@ import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useMemo } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
+import { tr, trn, useLang } from '@/i18n';
 import { RULE_META, summarizeRule } from '@/engine/catalog';
 import { runPipeline } from '@/engine/pipeline';
 import { SAMPLE_FILES } from '@/services/fs/samples';
@@ -33,6 +34,7 @@ const SAMPLES: FileItem[] = SAMPLE_FILES.slice(0, 5).map((s, i) => ({
 }));
 
 export default function PresetDetail() {
+  useLang();
   const t = useTheme();
   const { contentMax } = useLayout();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -46,7 +48,7 @@ export default function PresetDetail() {
   );
 
   if (!preset) {
-    return <EmptyState icon={{ sf: 'questionmark.square.dashed', md: 'help' }} title="Preset não encontrado" message="Ele pode ter sido excluído." action={{ title: 'Voltar', onPress: () => router.back() }} />;
+    return <EmptyState icon={{ sf: 'questionmark.square.dashed', md: 'help' }} title={tr('Preset não encontrado')} message={tr('Ele pode ter sido excluído.')} action={{ title: tr('Voltar'), onPress: () => router.back() }} />;
   }
 
   return (
@@ -56,8 +58,8 @@ export default function PresetDetail() {
           title: '',
           headerRight: () => (
             <View style={{ flexDirection: 'row', gap: space.xs }}>
-              <IconButton sf={preset.favorite ? 'star.fill' : 'star'} md="star" label={preset.favorite ? 'Remover dos favoritos' : 'Favoritar'} onPress={() => { haptics.selection(); toggleFavorite(preset.id); }} />
-              <IconButton sf="ellipsis.circle" md="more_vert" label="Mais opções" onPress={() => presetActions(preset)} />
+              <IconButton sf={preset.favorite ? 'star.fill' : 'star'} md="star" label={preset.favorite ? tr('Remover dos favoritos') : tr('Favoritar')} onPress={() => { haptics.selection(); toggleFavorite(preset.id); }} />
+              <IconButton sf="ellipsis.circle" md="more_vert" label={tr('Mais opções')} onPress={() => presetActions(preset)} />
             </View>
           ),
         }}
@@ -74,14 +76,14 @@ export default function PresetDetail() {
             </Text>
           ) : null}
           <Text variant="footnote" tone="tertiary" tabular>
-            {preset.builtIn ? 'Preset do Lote' : 'Seu preset'} · usado {preset.uses} {preset.uses === 1 ? 'vez' : 'vezes'}
-            {quick ? ' · preset rápido' : ''}
+            {preset.builtIn ? tr('Preset do Lote') : tr('Seu preset')} · {trn(preset.uses, 'usado {{n}} vez', 'usado {{n}} vezes')}
+            {quick ? ` · ${tr('preset rápido')}` : ''}
           </Text>
         </View>
 
         <View style={{ gap: space.md }}>
-          <Button title="Usar no Estúdio" icon={{ sf: 'wand.and.rays', md: 'auto_fix_high' }} onPress={() => applyPresetToStudio(preset)} />
-          <Button title="Adicionar às regras atuais" variant="secondary" onPress={() => applyPresetToStudio(preset, 'append')} />
+          <Button title={tr('Usar no Estúdio')} icon={{ sf: 'wand.and.rays', md: 'auto_fix_high' }} onPress={() => applyPresetToStudio(preset)} />
+          <Button title={tr('Adicionar às regras atuais')} variant="secondary" onPress={() => applyPresetToStudio(preset, 'append')} />
         </View>
 
         <Section title={`Regras · ${preset.rules.length}`}>
@@ -92,7 +94,7 @@ export default function PresetDetail() {
 
         <View style={{ gap: space.sm }}>
           <Text variant="footnote" tone="secondary" weight="600" style={{ textTransform: 'uppercase', letterSpacing: 0.4, paddingHorizontal: space.lg }}>
-            Exemplo
+            {tr('Exemplo')}
           </Text>
           <Card>
             {preview.map((item, i) => (
@@ -110,7 +112,7 @@ export default function PresetDetail() {
         </View>
 
         {!preset.builtIn && (
-          <Button title="Editar nome e ícone" variant="tinted" icon={{ sf: 'pencil', md: 'edit' }} onPress={() => router.push({ pathname: '/save-preset', params: { edit: preset.id } })} />
+          <Button title={tr('Editar nome e ícone')} variant="tinted" icon={{ sf: 'pencil', md: 'edit' }} onPress={() => router.push({ pathname: '/save-preset', params: { edit: preset.id } })} />
         )}
       </ScrollView>
     </>

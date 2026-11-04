@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware';
 
 import { builtInPresets, clonePresetRules, type Preset } from '@/engine/presets';
 import type { Rule } from '@/engine/types';
+import { tr } from '@/i18n';
 import { newId } from '@/services/fs';
 
 import { storage } from './storage';
@@ -40,7 +41,7 @@ export const usePresets = create<PresetsState>()(
       save: ({ name, description = '', sf = 'star', md = 'star', rules, sort }) => {
         const preset: Preset = {
           id: `p-${newId()}`,
-          name: name.trim() || 'Sem nome',
+          name: name.trim() || tr('Sem nome'),
           description,
           sf,
           md,
@@ -61,7 +62,7 @@ export const usePresets = create<PresetsState>()(
       duplicate: (id) => {
         const source = allPresets(get()).find((p) => p.id === id);
         if (!source) return undefined;
-        return get().save({ name: `${source.name} (cópia)`, description: source.description, sf: source.sf, md: source.md, rules: source.rules });
+        return get().save({ name: tr('{{name}} (cópia)', { name: source.name }), description: source.description, sf: source.sf, md: source.md, rules: source.rules });
       },
       toggleFavorite: (id) =>
         set((s) => {
@@ -92,7 +93,8 @@ export const usePresets = create<PresetsState>()(
 );
 
 export function allPresets(state: Pick<PresetsState, 'custom' | 'builtInUsage'>): Preset[] {
-  const built = BUILT_INS.map((p) => ({ ...p, ...(state.builtInUsage[p.id] ?? {}) }));
+  // Built-in names are pt-BR source strings, translated on every read.
+  const built = BUILT_INS.map((p) => ({ ...p, name: tr(p.name), description: tr(p.description), ...(state.builtInUsage[p.id] ?? {}) }));
   return [...state.custom, ...built];
 }
 

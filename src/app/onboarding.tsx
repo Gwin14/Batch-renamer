@@ -21,6 +21,7 @@ import { loadSamples } from '@/features/studio/importMenu';
 import { haptics } from '@/services/haptics';
 import { useSettings } from '@/store/settings';
 import { Icon } from '@/ui/Icon';
+import { m, tr, useLang } from '@/i18n';
 import { Button } from '@/ui/Pressables';
 import { Text } from '@/ui/Text';
 import { radius, space, type, useTheme, type Theme } from '@/ui/theme';
@@ -78,9 +79,9 @@ function RenameDemo({ active, t }: { active: boolean; t: Theme }) {
 /* ───────── Demo 2: rules stacking ───────── */
 
 const STEPS = [
-  { title: 'Limpar', sf: 'wand.and.stars', md: 'mop', result: 'IMG_4821.jpg' },
-  { title: 'Data da captura', sf: 'calendar', md: 'calendar_today', result: '2026-07-14_IMG_4821.jpg' },
-  { title: 'Numeração', sf: 'number', md: 'tag', result: '2026-07-14_001.jpg' },
+  { title: m('Limpar'), sf: 'wand.and.stars', md: 'mop', result: 'IMG_4821.jpg' },
+  { title: m('Data da captura'), sf: 'calendar', md: 'calendar_today', result: '2026-07-14_IMG_4821.jpg' },
+  { title: m('Numeração'), sf: 'number', md: 'tag', result: '2026-07-14_001.jpg' },
 ];
 
 function RulesDemo({ active, t }: { active: boolean; t: Theme }) {
@@ -98,7 +99,7 @@ function RulesDemo({ active, t }: { active: boolean; t: Theme }) {
               <Icon sf={s.sf} md={s.md} size={16} color={t.accent} weight="semibold" />
             </View>
             <Text variant="headline" style={{ flex: 1 }}>
-              {s.title}
+              {tr(s.title)}
             </Text>
             <Text variant="footnote" tone="tertiary" tabular>
               {i + 1}
@@ -134,7 +135,7 @@ function VariablesDemo({ active, t }: { active: boolean; t: Theme }) {
   return (
     <View style={[styles.demoCard, { backgroundColor: t.surface, boxShadow: t.shadowLift, padding: space.lg, gap: space.lg }]}>
       <Text variant="footnote" tone="secondary" weight="600">
-        NOVO NOME
+        {tr('NOVO NOME')}
       </Text>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
         {TOKENS.map((tk, i) =>
@@ -164,10 +165,10 @@ function VariablesDemo({ active, t }: { active: boolean; t: Theme }) {
 
 function EverywhereDemo({ t }: { t: Theme }) {
   const items = [
-    { sf: 'square.and.arrow.up', md: 'share', label: 'Compartilhar' },
-    { sf: 'square.grid.2x2', md: 'widgets', label: 'Widget' },
-    { sf: 'lock.rectangle', md: 'lock', label: 'Tela bloqueada' },
-    { sf: 'folder', md: 'folder', label: 'Pastas' },
+    { sf: 'square.and.arrow.up', md: 'share', label: tr('Compartilhar') },
+    { sf: 'square.grid.2x2', md: 'widgets', label: tr('Widget') },
+    { sf: 'lock.rectangle', md: 'lock', label: tr('Tela bloqueada') },
+    { sf: 'folder', md: 'folder', label: tr('Pastas') },
   ];
   return (
     <View style={{ width: '100%', gap: space.md }}>
@@ -186,14 +187,14 @@ function EverywhereDemo({ t }: { t: Theme }) {
           <Icon sf="checkmark" md="check" size={16} color={t.success} weight="bold" />
         </View>
         <View style={{ flex: 1 }}>
-          <Text variant="headline">48 arquivos renomeados</Text>
+          <Text variant="headline">{tr('{{n}} arquivos renomeados', { n: 48 })}</Text>
           <Text variant="footnote" tone="secondary">
-            Fotos por data · agora
+            {tr('Fotos por data · agora')}
           </Text>
         </View>
         <View style={[styles.undo, { backgroundColor: t.fill }]}>
           <Text variant="subhead" weight="600">
-            Desfazer
+            {tr('Desfazer')}
           </Text>
         </View>
       </View>
@@ -204,10 +205,10 @@ function EverywhereDemo({ t }: { t: Theme }) {
 /* ───────── Pager ───────── */
 
 const PAGES = [
-  { title: 'Centenas de arquivos,\num toque', body: 'Renomeie fotos, vídeos e documentos em lote — com prévia de cada nome antes de qualquer mudança.' },
-  { title: 'Regras que se encaixam', body: 'Combine substituir, data, numeração, limpeza e mais. Reordene, pause e salve como preset.' },
-  { title: 'Variáveis inteligentes', body: 'Data da captura, pasta, dimensões, contadores e filtros — o nome se monta sozinho.' },
-  { title: 'De qualquer lugar,\nsempre reversível', body: 'Mande arquivos pelo Compartilhar, use o widget ou a tela bloqueada. Cada lote pode ser desfeito.' },
+  { title: m('Centenas de arquivos,\num toque'), body: m('Renomeie fotos, vídeos e documentos em lote — com prévia de cada nome antes de qualquer mudança.') },
+  { title: m('Regras que se encaixam'), body: m('Combine substituir, data, numeração, limpeza e mais. Reordene, pause e salve como preset.') },
+  { title: m('Variáveis inteligentes'), body: m('Data da captura, pasta, dimensões, contadores e filtros — o nome se monta sozinho.') },
+  { title: m('De qualquer lugar,\nsempre reversível'), body: m('Mande arquivos pelo Compartilhar, use o widget ou a tela bloqueada. Cada lote pode ser desfeito.') },
 ];
 
 function Dot({ index, x, width, t }: { index: number; x: SharedValue<number>; width: number; t: Theme }) {
@@ -222,6 +223,7 @@ function Dot({ index, x, width, t }: { index: number; x: SharedValue<number>; wi
 
 export default function Onboarding() {
   const t = useTheme();
+  useLang();
   const { width } = useWindowDimensions();
   const complete = useSettings((s) => s.completeOnboarding);
   const scrollRef = useAnimatedRef<Animated.ScrollView>();
@@ -262,7 +264,7 @@ export default function Onboarding() {
         </View>
         {!last && (
           <Text variant="body" tone="secondary" onPress={() => finish(false)} suppressHighlighting accessibilityRole="button" style={{ padding: space.sm }}>
-            Pular
+            {tr('Pular')}
           </Text>
         )}
       </View>
@@ -287,10 +289,10 @@ export default function Onboarding() {
             </View>
             <View style={{ gap: space.md, maxWidth: 520, alignSelf: 'center', width: '100%' }}>
               <Text variant="title1" accessibilityRole="header">
-                {p.title}
+                {tr(p.title)}
               </Text>
               <Text variant="callout" tone="secondary">
-                {p.body}
+                {tr(p.body)}
               </Text>
             </View>
           </View>
@@ -298,16 +300,16 @@ export default function Onboarding() {
       </Animated.ScrollView>
 
       <View style={styles.bottom}>
-        <View style={styles.dots} accessibilityLabel={`Página ${page + 1} de ${PAGES.length}`}>
+        <View style={styles.dots} accessibilityLabel={tr('Página {{page}} de {{total}}', { page: page + 1, total: PAGES.length })}>
           {PAGES.map((_, i) => (
             <Dot key={i} index={i} x={x} width={width} t={t} />
           ))}
         </View>
-        <Button title={last ? 'Começar' : 'Continuar'} onPress={() => (last ? finish(false) : go(page + 1))} full />
+        <Button title={last ? tr('Começar') : tr('Continuar')} onPress={() => (last ? finish(false) : go(page + 1))} full />
         <View style={{ height: 44, justifyContent: 'center' }}>
           {last && (
             <Text variant="subhead" tone="accent" weight="600" align="center" onPress={() => finish(true)} suppressHighlighting accessibilityRole="button" style={{ padding: space.sm }}>
-              Começar com arquivos de exemplo
+              {tr('Começar com arquivos de exemplo')}
             </Text>
           )}
         </View>

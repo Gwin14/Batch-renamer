@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
+import { tr, useLang } from '@/i18n';
 import { findPreset, allPresets, usePresets } from '@/store/presets';
 import { useStudio } from '@/store/studio';
 import { haptics } from '@/services/haptics';
@@ -17,6 +18,7 @@ import { AddRuleRow, RuleCard } from './RuleCard';
 /** Quick-start cards shown when the pipeline is empty. */
 export function PresetStrip() {
   const t = useTheme();
+  useLang();
   const custom = usePresets((s) => s.custom);
   const usage = usePresets((s) => s.builtInUsage);
   const list = allPresets({ custom, builtInUsage: usage })
@@ -28,11 +30,11 @@ export function PresetStrip() {
         <PressableScale
           key={p.id}
           accessibilityRole="button"
-          accessibilityLabel={`Usar preset ${p.name}`}
+          accessibilityLabel={tr('Usar preset {{name}}', { name: p.name })}
           onPress={() => {
             haptics.light();
             useStudio.getState().loadPreset(p);
-            toast(`Preset “${p.name}” aplicado`, { tone: 'success' });
+            toast(tr('Preset “{{name}}” aplicado', { name: p.name }), { tone: 'success' });
           }}
           style={[styles.presetCard, { backgroundColor: t.surface, boxShadow: t.scheme === 'light' ? t.shadow : undefined }]}
         >
@@ -53,6 +55,7 @@ export function PresetStrip() {
 
 export function PipelineSection() {
   const t = useTheme();
+  useLang();
   const rules = useStudio((s) => s.rules);
   const presetName = useStudio((s) => s.presetName);
   const presetId = useStudio((s) => s.presetId);
@@ -63,7 +66,7 @@ export function PipelineSection() {
     <View style={{ gap: space.sm }}>
       <View style={styles.header}>
         <Text variant="footnote" tone="secondary" weight="600" style={styles.caps}>
-          Regras {rules.length ? `· ${rules.length}` : ''}
+          {tr('Regras')} {rules.length ? `· ${rules.length}` : ''}
         </Text>
         {rules.length > 0 && (
           <Text
@@ -72,20 +75,20 @@ export function PipelineSection() {
             weight="600"
             onPress={() =>
               confirmDestructive({
-                title: 'Limpar todas as regras?',
-                confirm: 'Limpar regras',
+                title: tr('Limpar todas as regras?'),
+                confirm: tr('Limpar regras'),
                 onConfirm: () => {
                   const snapshot = useStudio.getState();
                   const prev = { rules: snapshot.rules, presetId: snapshot.presetId, presetName: snapshot.presetName, dirty: snapshot.dirty };
                   snapshot.clearRules();
-                  toast('Regras limpas', { action: { label: 'Desfazer', onPress: () => useStudio.setState(prev) } });
+                  toast(tr('Regras limpas'), { action: { label: tr('Desfazer'), onPress: () => useStudio.setState(prev) } });
                 },
               })
             }
             suppressHighlighting
             accessibilityRole="button"
           >
-            Limpar
+            {tr('Limpar tudo')}
           </Text>
         )}
       </View>
@@ -95,7 +98,7 @@ export function PipelineSection() {
           <Icon sf="square.stack.3d.up.fill" md="stacks" size={14} color={t.accent} />
           <Text variant="footnote" weight="600" tone="accent" numberOfLines={1} style={{ flexShrink: 1 }}>
             {presetName}
-            {dirty ? ' · editado' : ''}
+            {dirty ? ` · ${tr('editado')}` : ''}
           </Text>
           {dirty && (
             <Text
@@ -106,7 +109,7 @@ export function PipelineSection() {
               onPress={() => router.push(isCustom ? { pathname: '/save-preset', params: { update: presetId ?? '' } } : '/save-preset')}
               style={{ marginLeft: 'auto' }}
             >
-              {isCustom ? 'Atualizar' : 'Salvar como novo'}
+              {isCustom ? tr('Atualizar') : tr('Salvar como novo')}
             </Text>
           )}
         </View>
@@ -125,7 +128,7 @@ export function PipelineSection() {
       {rules.length === 0 && (
         <View style={{ gap: space.sm, marginHorizontal: -space.lg, marginTop: space.sm }}>
           <Text variant="footnote" tone="secondary" weight="600" style={[styles.caps, { paddingHorizontal: space.xxxl }]}>
-            Ou comece por um preset
+            {tr('Ou comece por um preset')}
           </Text>
           <PresetStrip />
         </View>

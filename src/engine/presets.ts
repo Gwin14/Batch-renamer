@@ -1,3 +1,5 @@
+import { m } from '../i18n/core';
+
 import { createRule } from './rules';
 import type { Rule, RuleType } from './types';
 
@@ -35,45 +37,45 @@ const builtIn = (id: string, name: string, description: string, sf: string, md: 
   createdAt: 0,
 });
 
-/** Factory so every load gets fresh rule ids. */
+/** Factory so every load gets fresh rule ids. Names and descriptions are pt-BR sources (translated in allPresets). */
 export function builtInPresets(): Preset[] {
   return [
-    builtIn('bi-photos-date', 'Fotos por data', '2024-05-17_001.jpg — ordena por captura', 'photo.on.rectangle', 'photo_library', [
+    builtIn('bi-photos-date', m('Fotos por data'), m('2024-05-17_001.jpg — ordena por captura'), 'photo.on.rectangle', 'photo_library', [
       r('template', { template: '{taken:YYYY-MM-DD}_{fn:3}' }),
       r('extension', { mode: 'normalize' }),
     ], 'taken'),
-    builtIn('bi-trip', 'Álbum de viagem', 'Lisboa-001.jpg com nome do álbum', 'airplane', 'flight', [
+    builtIn('bi-trip', m('Álbum de viagem'), m('Lisboa-001.jpg com nome do álbum'), 'airplane', 'flight', [
       r('template', { template: 'Viagem_{n:3}' }),
       r('extension', { mode: 'lower' }),
     ], 'taken'),
-    builtIn('bi-web', 'Pronto para web', 'minusculas-sem-acentos.jpg', 'globe', 'language', [
+    builtIn('bi-web', m('Pronto para web'), m('minusculas-sem-acentos.jpg'), 'globe', 'language', [
       r('clean', { removeAccents: true, removeEmoji: true, removeSpecial: true }),
       r('case', { style: 'kebab' }),
       r('extension', { mode: 'normalize' }),
     ]),
-    builtIn('bi-screenshots', 'Limpar capturas de tela', 'Screenshot 2024-05-17 at… → Captura 2024-05-17 14h22', 'camera.viewfinder', 'screenshot_monitor', [
+    builtIn('bi-screenshots', m('Limpar capturas de tela'), m('Screenshot 2024-05-17 at… → Captura 2024-05-17 14h22'), 'camera.viewfinder', 'screenshot_monitor', [
       r('template', { template: 'Captura {taken:YYYY-MM-DD HH[h]mm}' }),
     ]),
-    builtIn('bi-copies', 'Remover “(1)” e “cópia”', 'Relatorio (1).pdf → Relatorio.pdf', 'doc.on.doc', 'file_copy', [
+    builtIn('bi-copies', m('Remover “(1)” e “cópia”'), m('Relatorio (1).pdf → Relatorio.pdf'), 'doc.on.doc', 'file_copy', [
       r('clean', { removeCopySuffix: true }),
     ]),
-    builtIn('bi-sequence', 'Sequência simples', '001, 002, 003… mantendo a ordem', 'list.number', 'format_list_numbered', [
+    builtIn('bi-sequence', m('Sequência simples'), m('001, 002, 003… mantendo a ordem'), 'list.number', 'format_list_numbered', [
       r('template', { template: '{n:3}' }),
     ], 'name'),
-    builtIn('bi-organize-year', 'Organizar por ano/mês', 'Move para pastas 2024/05', 'folder.badge.gearshape', 'folder_managed', [
+    builtIn('bi-organize-year', m('Organizar por ano/mês'), m('Move para pastas 2024/05'), 'folder.badge.gearshape', 'folder_managed', [
       r('folder', { template: '{taken:YYYY}/{taken:MM}' }),
     ]),
-    builtIn('bi-docs', 'Documentos de trabalho', '2026-11-02 - Relatório.pdf', 'briefcase', 'work', [
+    builtIn('bi-docs', m('Documentos de trabalho'), m('2026-11-02 - Relatório.pdf'), 'briefcase', 'work', [
       r('clean', {}),
       r('case', { style: 'title' }),
       r('date', { source: 'modified', format: 'YYYY-MM-DD', position: 'start', separator: ' - ' }),
     ]),
-    builtIn('bi-music', 'Música padronizada', 'artista_-_faixa.mp3 → Artista - Faixa.mp3', 'music.note', 'music_note', [
+    builtIn('bi-music', m('Música padronizada'), m('artista_-_faixa.mp3 → Artista - Faixa.mp3'), 'music.note', 'music_note', [
       r('replace', { find: '_', replace: ' ' }),
       r('clean', {}),
       r('case', { style: 'title' }),
     ]),
-    builtIn('bi-pad', 'Corrigir ordenação', 'foto 2, foto 10 → foto 002, foto 010', 'arrow.up.arrow.down', 'sort', [
+    builtIn('bi-pad', m('Corrigir ordenação'), m('foto 2, foto 10 → foto 002, foto 010'), 'arrow.up.arrow.down', 'sort', [
       r('pad', { digits: 3 }),
     ]),
   ];

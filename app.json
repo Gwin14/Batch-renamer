@@ -17,10 +17,13 @@
         "UIFileSharingEnabled": true,
         "LSSupportsOpeningDocumentsInPlace": true,
         "CFBundleDisplayName": "Lote",
+        "CFBundleAllowMixedLocalizations": true,
         "ITSAppUsesNonExemptEncryption": false
       },
       "entitlements": {
-        "com.apple.security.application-groups": ["group.com.fabiosantos.lote"]
+        "com.apple.security.application-groups": [
+          "group.com.fabiosantos.lote"
+        ]
       }
     },
     "android": {
@@ -36,8 +39,16 @@
       "favicon": "./assets/favicon.png",
       "output": "single"
     },
+    "locales": {
+      "en": "./locales/en.json",
+      "pt": "./locales/pt.json",
+      "es": "./locales/es.json",
+      "fr": "./locales/fr.json",
+      "de": "./locales/de.json"
+    },
     "plugins": [
       "expo-router",
+      "./plugins/withReleaseScheme",
       [
         "expo-splash-screen",
         {
@@ -45,7 +56,10 @@
           "imageWidth": 96,
           "resizeMode": "contain",
           "backgroundColor": "#F2F2F7",
-          "dark": { "image": "./assets/splash-icon.png", "backgroundColor": "#000000" }
+          "dark": {
+            "image": "./assets/splash-icon.png",
+            "backgroundColor": "#000000"
+          }
         }
       ],
       [
@@ -62,8 +76,21 @@
           },
           "android": {
             "enabled": true,
-            "singleShareMimeTypes": ["image/*", "video/*", "audio/*", "application/*", "text/*"],
-            "multipleShareMimeTypes": ["image/*", "video/*", "audio/*", "application/*", "text/*", "*/*"]
+            "singleShareMimeTypes": [
+              "image/*",
+              "video/*",
+              "audio/*",
+              "application/*",
+              "text/*"
+            ],
+            "multipleShareMimeTypes": [
+              "image/*",
+              "video/*",
+              "audio/*",
+              "application/*",
+              "text/*",
+              "*/*"
+            ]
           }
         }
       ],
@@ -108,7 +135,13 @@
       ],
       "expo-font",
       "expo-image",
-      "expo-status-bar"
+      "expo-status-bar",
+      [
+        "expo-localization",
+        {
+          "supportedLocales": ["en", "pt", "es", "fr", "de"]
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

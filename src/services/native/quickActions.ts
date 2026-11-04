@@ -1,5 +1,6 @@
 import { router } from 'expo-router';
 
+import { tr } from '@/i18n';
 import { hasCustomNative, isIOS } from '@/services/env';
 
 type QuickAction = { id: string; title: string; subtitle?: string | null; icon?: string | null; params?: Record<string, string> | null };
@@ -12,10 +13,10 @@ export function setupQuickActions(quickPresetName: string): () => void {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const QA = require('expo-quick-actions') as typeof import('expo-quick-actions');
     const items: QuickAction[] = [
-      { id: 'photos', title: 'Renomear fotos', subtitle: quickPresetName, icon: isIOS ? 'symbol:photo.on.rectangle' : null, params: { href: '/quick?action=photos' } },
-      { id: 'files', title: 'Renomear arquivos', subtitle: 'Escolher do app Arquivos', icon: isIOS ? 'symbol:folder' : null, params: { href: '/quick?action=files' } },
-      { id: 'camera', title: 'Foto já nomeada', subtitle: 'Câmera com o preset rápido', icon: isIOS ? 'symbol:camera' : null, params: { href: '/quick?action=camera' } },
-      { id: 'history', title: 'Histórico', subtitle: 'Desfazer um lote', icon: isIOS ? 'symbol:clock.arrow.circlepath' : null, params: { href: '/history' } },
+      { id: 'photos', title: tr('Renomear fotos'), subtitle: quickPresetName, icon: isIOS ? 'symbol:photo.on.rectangle' : null, params: { href: '/quick?action=photos' } },
+      { id: 'files', title: tr('Renomear arquivos'), subtitle: tr('Escolher do app Arquivos'), icon: isIOS ? 'symbol:folder' : null, params: { href: '/quick?action=files' } },
+      { id: 'camera', title: tr('Foto já nomeada'), subtitle: tr('Câmera com o preset rápido'), icon: isIOS ? 'symbol:camera' : null, params: { href: '/quick?action=camera' } },
+      { id: 'history', title: tr('Histórico'), subtitle: tr('Desfazer um lote'), icon: isIOS ? 'symbol:clock.arrow.circlepath' : null, params: { href: '/history' } },
     ];
     QA.setItems(items).catch(() => {});
     const open = (a?: QuickAction | { params?: Record<string, unknown> | null }) => {

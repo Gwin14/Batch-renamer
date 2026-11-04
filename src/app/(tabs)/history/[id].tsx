@@ -2,6 +2,7 @@ import { FlashList } from '@shopify/flash-list';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 
+import { tr, trn, useLang } from '@/i18n';
 import { formatDate } from '@/engine/date';
 import { useHistory, type HistoryOp } from '@/store/history';
 import { EmptyState, FileThumb, NameDiff } from '@/ui/Domain';
@@ -11,12 +12,16 @@ import { Text } from '@/ui/Text';
 import { radius, space, useTheme } from '@/ui/theme';
 
 import { confirmUndo } from '@/features/history/confirmUndo';
+import { LimitNotice } from '@/features/pro/LimitNotice';
+import { FREE_LIMITS } from '@/services/purchases';
 
 export default function BatchDetail() {
   const t = useTheme();
+  useLang();
   const { id } = useLocalSearchParams<{ id: string }>();
   const batch = useHistory((s) => s.batches.find((b) => b.id === id));
-  if (!batch) return <EmptyState icon={{ sf: 'questionmark.circle', md: 'help' }} title="Lote não encontrado" message="Ele foi apagado do histórico." action={{ title: 'Voltar', onPress: () => router.back() }} />;
+  const undoFree = useHistory((s) => s.batches.slice(0, FREE_LIMITS.undoableBatches).some((b) => b.id === id));
+  if (!batch) return <EmptyState icon={{ sf: 'questionmark.circle', md: 'help' }} title={tr('Lote não encontrado')} message={tr('Ele foi apagado do histórico.')} action={{ title: tr('Voltar'), onPress: () => router.back() }} />;
 
   const undone = !!batch.undoneAt;
   const n = batch.ops.length;
@@ -31,7 +36,7 @@ export default function BatchDetail() {
           <View style={{ flex: 1, gap: 3 }}>
             <NameDiff from={from} to={to} />
             <Text variant="footnote" tone="tertiary" numberOfLines={1} ellipsizeMode="middle">
-              {moved && !undone ? '↳ movido para subpasta · ' : ''}era {from}
+              {moved && !undone ? `↳ ${tr('movido para subpasta')} · ` : ''}{tr('era {{name}}', { name: from })}
             </Text>
           </View>
         </View>
@@ -53,11 +58,14 @@ export default function BatchDetail() {
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }}>
               <Icon sf={undone ? 'arrow.uturn.backward.circle.fill' : 'checkmark.circle.fill'} md={undone ? 'undo' : 'check_circle'} size={18} color={undone ? t.secondary : t.success} />
               <Text variant="subhead" tone="secondary" tabular>
-                {n} {n === 1 ? 'arquivo' : 'arquivos'} · {formatDate(batch.at, 'DD/MM/YYYY [às] HH:mm')}
-                {undone ? ` · desfeito ${formatDate(batch.undoneAt!, 'DD/MM [às] HH:mm')}` : ''}
+                {trn(n, '{{n}} arquivo', '{{n}} arquivos')} · {formatDate(batch.at, tr('DD/MM/YYYY [às] HH:mm'))}
+                {undone ? ` · ${tr('desfeito {{when}}', { when: formatDate(batch.undoneAt!, tr('DD/MM [às] HH:mm')) })}` : ''}
               </Text>
             </View>
-            {!undone && <Button title="Desfazer este lote" variant="secondary" icon={{ sf: 'arrow.uturn.backward', md: 'undo' }} onPress={() => confirmUndo(batch)} />}
+            {!undone && !undoFree && (
+              <LimitNotice compact title={tr('Lote antigo')} message={tr('No plano grátis, dá para desfazer os {{n}} últimos lotes.', { n: FREE_LIMITS.undoableBatches })} />
+            )}
+            {!undone && <Button title={tr('Desfazer este lote')} variant="secondary" icon={{ sf: 'arrow.uturn.backward', md: 'undo' }} onPress={() => confirmUndo(batch)} />}
           </View>
         }
         contentContainerStyle={{ paddingBottom: space.xxxl * 2 }}

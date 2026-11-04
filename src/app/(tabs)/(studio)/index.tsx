@@ -8,10 +8,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import type { PreviewItem, PreviewSummary } from '@/engine/types';
 import { loadSamples, openImportMenu } from '@/features/studio/importMenu';
 import { PipelineSection } from '@/features/studio/Pipeline';
+import { LimitNotice } from '@/features/pro/LimitNotice';
 import { PreviewRow } from '@/features/studio/PreviewRow';
 import { useEnrichMedia } from '@/hooks/useEnrichMedia';
 import { useFocusNow, usePreview } from '@/hooks/usePreview';
+import { m, tr, trn, useLang } from '@/i18n';
 import { haptics } from '@/services/haptics';
+import { FREE_LIMITS, usePro } from '@/services/purchases';
 import { consumeIncomingShare } from '@/services/share';
 import { useSettings } from '@/store/settings';
 import { useStudio, type SortKey } from '@/store/studio';
@@ -25,22 +28,23 @@ import { Text } from '@/ui/Text';
 import { toast } from '@/ui/Toast';
 import { radius, space, useTheme } from '@/ui/theme';
 
+/** Labels are pt-BR source strings (translated when shown). */
 const SORTS: { key: SortKey; label: string; short: string; sf: string; md: string }[] = [
-  { key: 'name', label: 'Nome (natural)', short: 'Nome', sf: 'textformat', md: 'sort_by_alpha' },
-  { key: 'taken', label: 'Data da captura', short: 'Captura', sf: 'camera', md: 'photo_camera' },
-  { key: 'modified', label: 'Data de modificação', short: 'Modificado', sf: 'calendar', md: 'calendar_today' },
-  { key: 'size', label: 'Tamanho', short: 'Tamanho', sf: 'internaldrive', md: 'storage' },
-  { key: 'type', label: 'Tipo', short: 'Tipo', sf: 'doc.on.doc', md: 'category' },
+  { key: 'name', label: m('Nome (natural)'), short: m('Nome'), sf: 'textformat', md: 'sort_by_alpha' },
+  { key: 'taken', label: m('Data da captura'), short: m('Captura'), sf: 'camera', md: 'photo_camera' },
+  { key: 'modified', label: m('Data de modificação'), short: m('Modificado'), sf: 'calendar', md: 'calendar_today' },
+  { key: 'size', label: m('Tamanho'), short: m('Tamanho'), sf: 'internaldrive', md: 'storage' },
+  { key: 'type', label: m('Tipo'), short: m('Tipo'), sf: 'doc.on.doc', md: 'category' },
 ];
 
 function openSortMenu() {
   const { sort, sortDesc } = useStudio.getState();
   showActions({
-    title: 'Ordenar arquivos',
-    message: 'A ordem define a numeração {n}.',
+    title: tr('Ordenar arquivos'),
+    message: tr('A ordem define a numeração {n}.'),
     options: [
       ...SORTS.map((s) => ({
-        label: `${s.label}${sort === s.key ? (sortDesc ? '  ↓' : '  ↑') : ''}`,
+        label: `${tr(s.label)}${sort === s.key ? (sortDesc ? '  ↓' : '  ↑') : ''}`,
         icon: { sf: s.sf, md: s.md },
         onPress: () => {
           useStudio.getState().setSort(s.key);
@@ -55,24 +59,24 @@ function openMoreMenu() {
   const s = useStudio.getState();
   showActions({
     options: [
-      { label: 'Salvar regras como preset', icon: { sf: 'square.and.arrow.down', md: 'save' }, onPress: () => router.push('/save-preset') },
-      { label: 'Ordenar arquivos', icon: { sf: 'arrow.up.arrow.down', md: 'sort' }, onPress: openSortMenu },
-      { label: 'Carregar arquivos de exemplo', icon: { sf: 'sparkles.rectangle.stack', md: 'science' }, onPress: loadSamples },
+      { label: tr('Salvar regras como preset'), icon: { sf: 'square.and.arrow.down', md: 'save' }, onPress: () => router.push('/save-preset') },
+      { label: tr('Ordenar arquivos'), icon: { sf: 'arrow.up.arrow.down', md: 'sort' }, onPress: openSortMenu },
+      { label: tr('Carregar arquivos de exemplo'), icon: { sf: 'sparkles.rectangle.stack', md: 'science' }, onPress: loadSamples },
       ...(s.files.length
         ? [
             {
-              label: 'Esvaziar lote',
+              label: tr('Esvaziar lote'),
               destructive: true,
               icon: { sf: 'xmark.bin', md: 'delete_sweep' },
               onPress: () =>
                 confirmDestructive({
-                  title: 'Tirar todos os arquivos do lote?',
-                  message: 'Os arquivos continuam onde estão; só saem desta lista.',
-                  confirm: 'Esvaziar lote',
+                  title: tr('Tirar todos os arquivos do lote?'),
+                  message: tr('Os arquivos continuam onde estão; só saem desta lista.'),
+                  confirm: tr('Esvaziar lote'),
                   onConfirm: () => {
                     const prev = useStudio.getState().files;
                     useStudio.getState().clearFiles();
-                    toast('Lote esvaziado', { action: { label: 'Desfazer', onPress: () => useStudio.setState({ files: prev }) } });
+                    toast(tr('Lote esvaziado'), { action: { label: tr('Desfazer'), onPress: () => useStudio.setState({ files: prev }) } });
                   },
                 }),
             },
@@ -86,44 +90,61 @@ function FilesHeader({ summary }: { summary: PreviewSummary }) {
   const total = summary.items.length;
   const changing = summary.changed + summary.resolved;
   const sort = useStudio((s) => s.sort);
-  const sortLabel = sort === 'manual' ? 'Manual' : SORTS.find((s) => s.key === sort)?.short;
+  useLang();
+  const short = SORTS.find((s) => s.key === sort)?.short;
+  const sortLabel = sort === 'manual' ? tr('Manual') : short && tr(short);
   return (
     <View style={styles.filesHeader}>
       <View style={{ flex: 1 }}>
         <Text variant="footnote" tone="secondary" weight="600" style={styles.caps} numberOfLines={1}>
-          Prévia · {total} {total === 1 ? 'arquivo' : 'arquivos'}
+          {trn(total, 'Prévia · {{n}} arquivo', 'Prévia · {{n}} arquivos')}
         </Text>
         <Text variant="footnote" tone="tertiary" tabular>
-          {changing} mudam{summary.unchanged ? ` · ${summary.unchanged} iguais` : ''}
-          {summary.conflicts ? ` · ${summary.conflicts} conflitos` : ''}
-          {summary.errors ? ` · ${summary.errors} com erro` : ''}
+          {tr('{{n}} mudam', { n: changing })}
+          {summary.unchanged ? ` · ${tr('{{n}} iguais', { n: summary.unchanged })}` : ''}
+          {summary.conflicts ? ` · ${tr('{{n}} conflitos', { n: summary.conflicts })}` : ''}
+          {summary.errors ? ` · ${tr('{{n}} com erro', { n: summary.errors })}` : ''}
         </Text>
       </View>
-      <Button title={sortLabel ?? 'Ordem'} size="sm" variant="secondary" icon={{ sf: 'arrow.up.arrow.down', md: 'sort' }} onPress={openSortMenu} />
-      <IconButton sf="plus" md="add" label="Adicionar arquivos" tone="accent" onPress={openImportMenu} />
+      <Button title={sortLabel || tr('Ordem')} size="sm" variant="secondary" icon={{ sf: 'arrow.up.arrow.down', md: 'sort' }} onPress={openSortMenu} />
+      <IconButton sf="plus" md="add" label={tr('Adicionar arquivos')} tone="accent" onPress={openImportMenu} />
+    </View>
+  );
+}
+
+/** Warns before Apply when the batch is bigger than the free plan allows. */
+function BatchLimitNotice({ changing }: { changing: number }) {
+  if (changing <= FREE_LIMITS.filesPerBatch) return null;
+  return (
+    <View style={{ paddingHorizontal: space.lg }}>
+      <LimitNotice
+        title={tr('Este lote tem {{n}} arquivos', { n: changing })}
+        message={tr('O plano grátis renomeia até {{limit}} por vez. Com o Lote Pro você renomeia todos de uma vez, sem limite.', { limit: FREE_LIMITS.filesPerBatch })}
+      />
     </View>
   );
 }
 
 function EmptyFiles() {
   const t = useTheme();
+  useLang();
   return (
     <Card style={{ marginHorizontal: space.lg }}>
       <EmptyState
         icon={{ sf: 'square.and.arrow.down.on.square', md: 'library_add' }}
-        title="Traga seus arquivos"
-        message="Fotos, documentos ou uma pasta inteira. Você vê o resultado antes de qualquer mudança."
-        action={{ title: 'Adicionar arquivos', onPress: openImportMenu, icon: { sf: 'plus', md: 'add' } }}
+        title={tr('Traga seus arquivos')}
+        message={tr('Fotos, documentos ou uma pasta inteira. Você vê o resultado antes de qualquer mudança.')}
+        action={{ title: tr('Adicionar arquivos'), onPress: openImportMenu, icon: { sf: 'plus', md: 'add' } }}
         secondary={
           <Text variant="subhead" tone="accent" weight="600" onPress={loadSamples} suppressHighlighting accessibilityRole="button" style={{ padding: space.sm }}>
-            Testar com arquivos de exemplo
+            {tr('Testar com arquivos de exemplo')}
           </Text>
         }
       />
       <View style={[styles.hint, { borderTopColor: t.separator }]}>
         <Icon sf="square.and.arrow.up" md="share" size={16} color={t.secondary} />
         <Text variant="footnote" tone="secondary" style={{ flex: 1 }}>
-          Dica: em qualquer app, toque em Compartilhar → Lote para mandar arquivos direto para cá.
+          {tr('Dica: em qualquer app, toque em Compartilhar → Lote para mandar arquivos direto para cá.')}
         </Text>
       </View>
     </Card>
@@ -132,12 +153,14 @@ function EmptyFiles() {
 
 function ApplyBar({ summary }: { summary: PreviewSummary }) {
   const t = useTheme();
+  useLang();
   const reduce = useReducedMotion();
   const confirm = useSettings((s) => s.confirmBeforeApply);
   const conflict = useSettings((s) => s.conflict);
   const changing = summary.changed + summary.resolved;
   const blocked = conflict === 'stop' && (summary.conflicts > 0 || summary.errors > 0);
-  const label = blocked ? 'Resolva os conflitos' : changing === 0 ? 'Nada para renomear' : `Renomear ${changing} ${changing === 1 ? 'arquivo' : 'arquivos'}`;
+  const label = blocked ? tr('Resolva os conflitos') : changing === 0 ? tr('Nada para renomear') : trn(changing, 'Renomear {{n}} arquivo', 'Renomear {{n}} arquivos');
+  const locked = usePro((st) => !st.isPro) && changing > FREE_LIMITS.filesPerBatch;
   if (summary.items.length === 0) return null;
   return (
     <SafeAreaView edges={['bottom']} pointerEvents="box-none" style={styles.applyWrap}>
@@ -150,7 +173,7 @@ function ApplyBar({ summary }: { summary: PreviewSummary }) {
         <Button
           title={label}
           disabled={changing === 0 || blocked}
-          icon={{ sf: 'wand.and.rays', md: 'auto_fix_high' }}
+          icon={locked ? { sf: 'lock.fill', md: 'lock' } : { sf: 'wand.and.rays', md: 'auto_fix_high' }}
           style={{ flex: 1 }}
           haptic={false}
           onPress={() => {
@@ -165,6 +188,7 @@ function ApplyBar({ summary }: { summary: PreviewSummary }) {
 
 export default function StudioScreen() {
   const t = useTheme();
+  useLang();
   const { isWide } = useLayout();
   const now = useFocusNow();
   const summary = usePreview(now);
@@ -173,7 +197,7 @@ export default function StudioScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      consumeIncomingShare().then((n) => n > 0 && toast(`${n} ${n === 1 ? 'arquivo recebido' : 'arquivos recebidos'} pelo Compartilhar`, { tone: 'success' }));
+      consumeIncomingShare().then((n) => n > 0 && toast(trn(n, '{{n}} arquivo recebido pelo Compartilhar', '{{n}} arquivos recebidos pelo Compartilhar'), { tone: 'success' }));
     }, []),
   );
 
@@ -203,8 +227,8 @@ export default function StudioScreen() {
       options={{
         headerRight: () => (
           <View style={{ flexDirection: 'row', gap: space.xs }}>
-            <IconButton sf="plus" md="add" label="Adicionar arquivos" onPress={openImportMenu} />
-            <IconButton sf="ellipsis.circle" md="more_vert" label="Mais opções" onPress={openMoreMenu} />
+            <IconButton sf="plus" md="add" label={tr('Adicionar arquivos')} onPress={openImportMenu} />
+            <IconButton sf="ellipsis.circle" md="more_vert" label={tr('Mais opções')} onPress={openMoreMenu} />
           </View>
         ),
       }}
@@ -220,6 +244,7 @@ export default function StudioScreen() {
           </View>
         )}
         {empty ? <EmptyFiles /> : <FilesHeader summary={summary} />}
+        <BatchLimitNotice changing={summary.changed + summary.resolved} />
       </View>
     ),
     [isWide, empty, summary],

@@ -1,0 +1,13 @@
+{
+  "ios": {
+    "CFBundleDisplayName": "Lote",
+    "NSPhotoLibraryUsageDescription": "O Lote acessa suas fotos para renomeá-las.",
+    "NSCameraUsageDescription": "O Lote usa a câmera para tirar fotos já com o nome certo.",
+    "NSPhotoLibraryAddUsageDescription": "O Lote salva nas Fotos as cópias renomeadas que você escolher.",
+    "NSMicrophoneUsageDescription": "O Lote usa o microfone ao gravar vídeos pela câmera."
+  },
+  "android": {
+    "app_name": "Lote",
+    "widget_lote_description": "Renomeie fotos e arquivos com um toque"
+  }
+}

@@ -2,6 +2,7 @@ import { router } from 'expo-router';
 import { useMemo } from 'react';
 import { ScrollView, View } from 'react-native';
 
+import { langTag, tr, trn, useLang } from '@/i18n';
 import { formatDate } from '@/engine/date';
 import { haptics } from '@/services/haptics';
 import { totalRenamed, useHistory, type HistoryBatch } from '@/store/history';
@@ -18,9 +19,9 @@ function dayLabel(at: number) {
   const today = new Date();
   const yesterday = new Date();
   yesterday.setDate(today.getDate() - 1);
-  if (d.toDateString() === today.toDateString()) return 'Hoje';
-  if (d.toDateString() === yesterday.toDateString()) return 'Ontem';
-  return formatDate(at, d.getFullYear() === today.getFullYear() ? 'D [de] MMMM' : 'D [de] MMMM [de] YYYY');
+  if (d.toDateString() === today.toDateString()) return tr('Hoje');
+  if (d.toDateString() === yesterday.toDateString()) return tr('Ontem');
+  return formatDate(at, d.getFullYear() === today.getFullYear() ? tr('D [de] MMMM') : tr('D [de] MMMM [de] YYYY'));
 }
 
 function Stat({ value, label }: { value: string; label: string }) {
@@ -37,9 +38,10 @@ function Stat({ value, label }: { value: string; label: string }) {
   );
 }
 
-const fmt = (n: number) => (n >= 10000 ? `${Math.round(n / 1000)} mil` : n.toLocaleString('pt-BR'));
+const fmt = (n: number) => (n >= 10000 ? tr('{{n}} mil', { n: Math.round(n / 1000) }) : n.toLocaleString(langTag()));
 
 export default function HistoryScreen() {
+  useLang();
   const { contentMax } = useLayout();
   const batches = useHistory((s) => s.batches);
   const groups = useMemo(() => {
@@ -56,9 +58,9 @@ export default function HistoryScreen() {
       <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ padding: space.lg, flexGrow: 1, justifyContent: 'center' }}>
         <EmptyState
           icon={{ sf: 'clock.arrow.circlepath', md: 'history' }}
-          title="Nada renomeado ainda"
-          message="Cada lote fica guardado aqui. Se algo não sair como esperado, desfaça com um toque."
-          action={{ title: 'Ir para o Estúdio', onPress: () => router.navigate('/(tabs)/(studio)') }}
+          title={tr('Nada renomeado ainda')}
+          message={tr('Cada lote fica guardado aqui. Se algo não sair como esperado, desfaça com um toque.')}
+          action={{ title: tr('Ir para o Estúdio'), onPress: () => router.navigate('/(tabs)/(studio)') }}
         />
       </ScrollView>
     );
@@ -67,8 +69,8 @@ export default function HistoryScreen() {
   return (
     <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ padding: space.lg, gap: space.xxl, paddingBottom: space.xxxl * 2, width: '100%', maxWidth: contentMax, alignSelf: 'center' }}>
       <View style={{ flexDirection: 'row', gap: space.md }}>
-        <Stat value={fmt(totalRenamed(batches))} label="arquivos renomeados" />
-        <Stat value={fmt(batches.filter((b) => !b.undoneAt).length)} label="lotes ativos" />
+        <Stat value={fmt(totalRenamed(batches))} label={tr('arquivos renomeados')} />
+        <Stat value={fmt(batches.filter((b) => !b.undoneAt).length)} label={tr('lotes ativos')} />
       </View>
       {groups.map(([day, list]) => (
         <Section key={day} title={day}>
@@ -76,18 +78,18 @@ export default function HistoryScreen() {
             <Row
               key={b.id}
               title={b.label}
-              subtitle={`${b.ops.length} ${b.ops.length === 1 ? 'arquivo' : 'arquivos'} · ${formatDate(b.at, 'HH:mm')}${b.ops[0] ? ` · ${b.ops[0].fromName} → ${b.ops[0].toName}` : ''}`}
+              subtitle={`${trn(b.ops.length, '{{n}} arquivo', '{{n}} arquivos')} · ${formatDate(b.at, 'HH:mm')}${b.ops[0] ? ` · ${b.ops[0].fromName} → ${b.ops[0].toName}` : ''}`}
               icon={b.undoneAt ? { sf: 'arrow.uturn.backward', md: 'undo' } : { sf: 'checkmark', md: 'check' }}
               chevron
-              right={b.undoneAt ? <StatusBadge tone="neutral" label="Desfeito" /> : b.failed ? <StatusBadge tone="warning" label={`${b.failed} falhas`} /> : undefined}
+              right={b.undoneAt ? <StatusBadge tone="neutral" label={tr('Desfeito')} /> : b.failed ? <StatusBadge tone="warning" label={trn(b.failed, '{{n}} falha', '{{n}} falhas')} /> : undefined}
               onPress={() => router.push({ pathname: '/history/[id]', params: { id: b.id } })}
               onLongPress={() => {
                 haptics.rigid();
                 showActions({
                   title: b.label,
                   options: [
-                    ...(!b.undoneAt ? [{ label: 'Desfazer lote', icon: { sf: 'arrow.uturn.backward', md: 'undo' }, onPress: () => confirmUndo(b) }] : []),
-                    { label: 'Apagar do histórico', destructive: true, icon: { sf: 'trash', md: 'delete' }, onPress: () => useHistory.getState().remove(b.id) },
+                    ...(!b.undoneAt ? [{ label: tr('Desfazer lote'), icon: { sf: 'arrow.uturn.backward', md: 'undo' }, onPress: () => confirmUndo(b) }] : []),
+                    { label: tr('Apagar do histórico'), destructive: true, icon: { sf: 'trash', md: 'delete' }, onPress: () => useHistory.getState().remove(b.id) },
                   ],
                 });
               }}
@@ -97,14 +99,14 @@ export default function HistoryScreen() {
       ))}
       <Card>
         <Row
-          title="Limpar histórico"
+          title={tr('Limpar histórico')}
           destructive
           icon={{ sf: 'trash', md: 'delete' }}
           onPress={() =>
             confirmDestructive({
-              title: 'Limpar todo o histórico?',
-              message: 'Os arquivos não mudam, mas não será mais possível desfazer estes lotes.',
-              confirm: 'Limpar histórico',
+              title: tr('Limpar todo o histórico?'),
+              message: tr('Os arquivos não mudam, mas não será mais possível desfazer estes lotes.'),
+              confirm: tr('Limpar histórico'),
               onConfirm: () => useHistory.getState().clear(),
             })
           }

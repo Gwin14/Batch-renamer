@@ -6,8 +6,8 @@ import { zipSync, type Zippable } from 'fflate';
 import { parseExifDate } from '@/engine/date';
 import { joinName, kindOf, splitName } from '@/engine/text';
 import type { FileItem, FileSource, PreviewItem } from '@/engine/types';
+import { tr } from '@/i18n';
 import { isWeb } from '@/services/env';
-
 import { displayName, driver, LIBRARY_DIR, setMeta } from './driver';
 import { SAMPLE_FILES, sampleBytes } from './samples';
 import type { Entry } from './types';
@@ -84,7 +84,7 @@ export async function importDocuments(destFolderUri: string): Promise<FileItem[]
   if (res.canceled) return [];
   const items: FileItem[] = [];
   for (const asset of res.assets) {
-    const name = uniqueName(destFolderUri, asset.name || `arquivo-${items.length + 1}`);
+    const name = uniqueName(destFolderUri, asset.name || `${tr('arquivo')}-${items.length + 1}`);
     const uri = await driver.copyInto(asset.uri, destFolderUri, name);
     const entry = driver.stat(uri) ?? { uri, name, isDirectory: false, size: asset.size ?? 0, modifiedAt: null, createdAt: null };
     items.push(
@@ -141,23 +141,35 @@ export async function captureWithCamera(destFolderUri: string): Promise<FileItem
   const res = await ImagePicker.launchCameraAsync({ exif: true, quality: 0.92 });
   if (res.canceled || !res.assets[0]) return null;
   const asset = res.assets[0];
-  const name = uniqueName(destFolderUri, asset.fileName || `Foto ${new Date().toISOString().slice(0, 10)}.jpg`);
+  const name = uniqueName(destFolderUri, asset.fileName || `${tr('Foto')} ${new Date().toISOString().slice(0, 10)}.jpg`);
   const uri = await driver.copyInto(asset.uri, destFolderUri, name);
   const item = mediaToItem(asset, uri, name, destFolderUri);
   return { ...item, takenAt: item.takenAt ?? Date.now() };
 }
 
-/** Copies files received from the share sheet into the library. */
-export async function importShared(payloads: { uri: string; name: string | null; size: number | null; mimeType: string | null }[]): Promise<FileItem[]> {
-  const dest = folderFor('Compartilhados');
+/** Copies files received from the share sheet into the library. One bad file never drops the rest. */
+export async function importShared(payloads: { uri: string; name: string | null; size: number | null; mimeType: string | null }[]): Promise<{ items: FileItem[]; failed: number }> {
+  const dest = folderFor(tr('Compartilhados'));
   const items: FileItem[] = [];
+  let failed = 0;
   for (const p of payloads) {
-    const name = uniqueName(dest, p.name || displayName(p.uri) || `arquivo-${items.length + 1}`);
-    const uri = await driver.copyInto(p.uri, dest, name);
-    const entry = driver.stat(uri) ?? { uri, name, isDirectory: false, size: p.size ?? 0, modifiedAt: Date.now(), createdAt: Date.now() };
-    items.push(toFileItem({ ...entry, name }, dest, 'library', { mimeType: p.mimeType }));
+    try {
+      const name = uniqueName(dest, p.name || displayName(p.uri) || `${tr('arquivo')}-${items.length + 1}`);
+      const uri = await driver.copyInto(p.uri, dest, name);
+      const entry = driver.stat(uri) ?? { uri, name, isDirectory: false, size: p.size ?? 0, modifiedAt: Date.now(), createdAt: Date.now() };
+      items.push(toFileItem({ ...entry, name }, dest, 'library', { mimeType: p.mimeType }));
+      // The extension's copy in the App Group container is no longer needed.
+      if (p.uri.includes('/AppGroup/')) {
+        try {
+          driver.remove(p.uri);
+        } catch {}
+      }
+    } catch (e) {
+      failed++;
+      if (__DEV__) console.warn('[share] could not copy', p.uri, e);
+    }
   }
-  return items;
+  return { items, failed };
 }
 
 export async function pickDeviceFolder(recursive: boolean): Promise<{ name: string; uri: string; files: FileItem[] } | null> {
@@ -168,7 +180,7 @@ export async function pickDeviceFolder(recursive: boolean): Promise<{ name: stri
 }
 
 export function createSampleFiles(): FileItem[] {
-  const dest = folderFor('Exemplos');
+  const dest = folderFor(tr('Exemplos'));
   // fresh set every time
   for (const e of driver.list(dest)) driver.remove(e.uri);
   return SAMPLE_FILES.map((spec) => {
@@ -289,7 +301,7 @@ export function occupiedNames(files: FileItem[]): Map<string, Set<string>> {
 
 export async function shareFiles(uris: string[], zipName = 'Lote'): Promise<void> {
   if (isWeb || !(await Sharing.isAvailableAsync())) throw new Error('SHARE_UNAVAILABLE');
-  if (uris.length === 1) return Sharing.shareAsync(uris[0], { dialogTitle: 'Compartilhar arquivo' });
+  if (uris.length === 1) return Sharing.shareAsync(uris[0], { dialogTitle: tr('Compartilhar arquivo') });
   const zip = await makeZip(uris, zipName);
   await Sharing.shareAsync(zip, { mimeType: 'application/zip', UTI: 'public.zip-archive', dialogTitle: 'Compartilhar ZIP' });
 }

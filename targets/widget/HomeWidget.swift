@@ -23,6 +23,27 @@ struct ActionPill: View {
   }
 }
 
+/// Free plan: the widget invites to unlock Lote Pro and opens the paywall.
+struct LockedHomeView: View {
+  @Environment(\.widgetFamily) private var family
+  var body: some View {
+    VStack(alignment: .leading, spacing: 10) {
+      Spacer(minLength: 0)
+      Image(systemName: "lock.fill")
+        .font(.system(size: family == .systemMedium ? 30 : 26, weight: .semibold))
+        .foregroundStyle(accent)
+        .frame(maxWidth: .infinity)
+      Text(L10n.t(.unlockPro))
+        .font(.system(size: family == .systemMedium ? 17 : 15, weight: .semibold))
+        .lineLimit(3)
+        .minimumScaleFactor(0.8)
+        .frame(maxWidth: .infinity, alignment: family == .systemMedium ? .center : .leading)
+        .multilineTextAlignment(family == .systemMedium ? .center : .leading)
+      Spacer(minLength: 0)
+    }
+  }
+}
+
 struct HomeSmallView: View {
   let entry: LoteEntry
   var body: some View {
@@ -38,9 +59,9 @@ struct HomeSmallView: View {
         .minimumScaleFactor(0.6)
         .lineLimit(1)
         .contentTransition(.numericText())
-      Text("renomeados").font(.system(size: 12)).foregroundStyle(.secondary)
+      Text(L10n.t(.renamed)).font(.system(size: 12)).foregroundStyle(.secondary)
       Spacer(minLength: 0)
-      ActionPill(title: "Fotos", symbol: "photo.on.rectangle", url: LoteLinks.photos, prominent: true)
+      ActionPill(title: L10n.t(.photos), symbol: "photo.on.rectangle", url: LoteLinks.photos, prominent: true)
     }
   }
 }
@@ -60,19 +81,19 @@ struct HomeMediumView: View {
           .monospacedDigit()
           .minimumScaleFactor(0.6)
           .lineLimit(1)
-        Text("arquivos renomeados").font(.system(size: 12)).foregroundStyle(.secondary)
+        Text(L10n.t(.filesRenamed)).font(.system(size: 12)).foregroundStyle(.secondary)
         Spacer(minLength: 0)
         if !entry.lastLabel.isEmpty {
-          Text("Último: \(entry.lastLabel) · \(entry.lastCount)")
+          Text("\(L10n.t(.last, entry.lastLabel)) · \(entry.lastCount)")
             .font(.system(size: 11)).foregroundStyle(.secondary).lineLimit(1)
         } else {
-          Text("Preset: \(entry.quickPresetName)").font(.system(size: 11)).foregroundStyle(.secondary).lineLimit(1)
+          Text(L10n.t(.preset, entry.quickPresetName)).font(.system(size: 11)).foregroundStyle(.secondary).lineLimit(1)
         }
       }
       VStack(spacing: 8) {
-        ActionPill(title: "Fotos", symbol: "photo.on.rectangle", url: LoteLinks.photos, prominent: true)
-        ActionPill(title: "Arquivos", symbol: "folder", url: LoteLinks.files)
-        ActionPill(title: "Câmera", symbol: "camera", url: LoteLinks.camera)
+        ActionPill(title: L10n.t(.photos), symbol: "photo.on.rectangle", url: LoteLinks.photos, prominent: true)
+        ActionPill(title: L10n.t(.files), symbol: "folder", url: LoteLinks.files)
+        ActionPill(title: L10n.t(.camera), symbol: "camera", url: LoteLinks.camera)
       }
       .frame(width: 132)
     }
@@ -84,13 +105,17 @@ struct LoteHomeWidgetView: View {
   let entry: LoteEntry
   var body: some View {
     Group {
-      switch family {
-      case .systemMedium: HomeMediumView(entry: entry)
-      default: HomeSmallView(entry: entry)
+      if !entry.isPro {
+        LockedHomeView()
+      } else {
+        switch family {
+        case .systemMedium: HomeMediumView(entry: entry)
+        default: HomeSmallView(entry: entry)
+        }
       }
     }
     .containerBackground(for: .widget) { Color("LoteBackground") }
-    .widgetURL(LoteLinks.photos)
+    .widgetURL(entry.isPro ? LoteLinks.photos : LoteLinks.pro)
   }
 }
 
@@ -101,7 +126,7 @@ struct LoteHomeWidget: Widget {
       LoteHomeWidgetView(entry: entry)
     }
     .configurationDisplayName("Lote")
-    .description("Total renomeado e atalhos para renomear fotos, arquivos ou tirar uma foto já nomeada.")
+    .description(L10n.t(.homeDescription))
     .supportedFamilies([.systemSmall, .systemMedium])
   }
 }

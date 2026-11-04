@@ -8,11 +8,13 @@ import { Row, Section } from '@/ui/List';
 import { useLayout } from '@/ui/navigation';
 import { Text } from '@/ui/Text';
 import { space, useTheme } from '@/ui/theme';
+import { m, tr, useLang } from '@/i18n';
 
-const GROUPS = ['Texto', 'Sequência e data', 'Limpeza', 'Organização'] as const;
+const GROUPS = [m('Texto'), m('Sequência e data'), m('Limpeza'), m('Organização')];
 
 export default function NewRuleScreen() {
   const t = useTheme();
+  useLang();
   const { contentMax } = useLayout();
   const pick = (meta: RuleMeta) => {
     haptics.light();
@@ -25,7 +27,7 @@ export default function NewRuleScreen() {
         options={{
           headerLeft: () => (
             <Text variant="body" tone="accent" onPress={() => router.dismiss()} suppressHighlighting accessibilityRole="button" style={process.env.EXPO_OS === 'ios' ? undefined : { marginRight: 24 }}>
-              Cancelar
+              {tr('Cancelar')}
             </Text>
           ),
         }}
@@ -36,10 +38,10 @@ export default function NewRuleScreen() {
         contentContainerStyle={{ padding: space.lg, gap: space.xxl, paddingBottom: space.xxxl * 2, width: '100%', maxWidth: contentMax, alignSelf: 'center' }}
       >
         <Text variant="subhead" tone="secondary" style={{ paddingHorizontal: space.xs }}>
-          As regras rodam em ordem, de cima para baixo. Você pode reordenar depois.
+          {tr('As regras rodam em ordem, de cima para baixo. Você pode reordenar depois.')}
         </Text>
         {GROUPS.map((group) => (
-          <Section key={group} title={group}>
+          <Section key={group} title={tr(group)}>
             {RULES.filter((r) => r.group === group).map((meta) => (
               <Row
                 key={meta.type}

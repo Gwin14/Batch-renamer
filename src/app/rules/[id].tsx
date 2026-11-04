@@ -2,6 +2,7 @@ import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useMemo } from 'react';
 import { KeyboardAvoidingView, ScrollView, StyleSheet, View } from 'react-native';
 
+import { tr, useLang } from '@/i18n';
 import { RULE_META } from '@/engine/catalog';
 import { runPipeline } from '@/engine/pipeline';
 import type { FileItem, Rule } from '@/engine/types';
@@ -33,6 +34,7 @@ const DEMO: FileItem[] = ['IMG_20260714_194208.JPG', 'Relatório Final (1).pdf',
 
 /** Shows the effect of the pipeline up to (and including) this rule on the first files. */
 function LivePreview({ rule }: { rule: Rule }) {
+  useLang();
   const t = useTheme();
   const files = useStudio((s) => s.files);
   const rules = useStudio((s) => s.rules);
@@ -47,7 +49,7 @@ function LivePreview({ rule }: { rule: Rule }) {
     <View style={{ gap: space.sm }}>
       <View style={styles.previewHeader}>
         <Text variant="footnote" tone="secondary" weight="600" style={styles.caps}>
-          Prévia ao vivo
+          {tr('Prévia ao vivo')}
         </Text>
         {!files.length && (
           <Text variant="footnote" tone="tertiary">
@@ -78,6 +80,7 @@ function LivePreview({ rule }: { rule: Rule }) {
 }
 
 export default function RuleEditor() {
+  useLang();
   const t = useTheme();
   const { contentMax } = useLayout();
   const { id, new: isNew } = useLocalSearchParams<{ id: string; new?: string }>();
@@ -88,8 +91,8 @@ export default function RuleEditor() {
   if (!rule) {
     return (
       <View style={{ flex: 1, backgroundColor: bg, justifyContent: 'center' }}>
-        <Stack.Screen options={{ title: 'Regra' }} />
-        <EmptyState icon={{ sf: 'questionmark.folder', md: 'help' }} title="Regra não encontrada" message="Ela pode ter sido removida." action={{ title: 'Fechar', onPress: () => router.dismiss() }} />
+        <Stack.Screen options={{ title: tr('Regra') }} />
+        <EmptyState icon={{ sf: 'questionmark.folder', md: 'help' }} title={tr('Regra não encontrada')} message={tr('Ela pode ter sido removida.')} action={{ title: tr('Fechar'), onPress: () => router.dismiss() }} />
       </View>
     );
   }
@@ -118,13 +121,13 @@ export default function RuleEditor() {
                     router.dismiss();
                   }}
                 >
-                  Cancelar
+                  {tr('Cancelar')}
                 </Text>
               )
             : undefined,
           headerRight: () => (
             <Text variant="body" tone="accent" weight="600" onPress={done} suppressHighlighting accessibilityRole="button" style={process.env.EXPO_OS === 'web' ? { marginRight: 16 } : undefined}>
-              {isNew ? 'Adicionar' : 'OK'}
+              {isNew ? tr('Adicionar') : 'OK'}
             </Text>
           ),
         }}
@@ -143,16 +146,16 @@ export default function RuleEditor() {
         {!isNew && (
           <>
             <Card>
-              <SwitchRow title="Regra ativa" subtitle="Pausar mantém a regra sem aplicá-la" value={rule.enabled} onValueChange={() => useStudio.getState().toggleRule(rule.id)} />
+              <SwitchRow title={tr('Regra ativa')} subtitle={tr('Pausar mantém a regra sem aplicá-la')} value={rule.enabled} onValueChange={() => useStudio.getState().toggleRule(rule.id)} />
             </Card>
             <Button
-              title="Remover regra"
+              title={tr('Remover regra')}
               variant="destructive"
               icon={{ sf: 'trash', md: 'delete' }}
               onPress={() =>
                 confirmDestructive({
-                  title: `Remover “${meta.title}”?`,
-                  confirm: 'Remover regra',
+                  title: tr('Remover “{{name}}”?', { name: meta.title }),
+                  confirm: tr('Remover regra'),
                   onConfirm: () => {
                     useStudio.getState().removeRule(rule.id);
                     router.dismiss();

@@ -5,6 +5,7 @@ import { Pressable, RefreshControl, StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown, FadeOutDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { langTag, tr, trn, useLang } from '@/i18n';
 import { formatBytes, naturalCompare, splitName } from '@/engine/text';
 import { runImport } from '@/features/studio/importMenu';
 import { isWeb } from '@/services/env';
@@ -56,7 +57,7 @@ function sendToStudio(entries: Entry[], folderUri: string) {
   );
   const added = useStudio.getState().addFiles(files);
   haptics.success();
-  toast(added ? `${added} ${added === 1 ? 'arquivo enviado' : 'arquivos enviados'} ao Estúdio` : 'Esses arquivos já estão no Estúdio', { tone: added ? 'success' : 'info' });
+  toast(added ? trn(added, '{{n}} arquivo enviado ao Estúdio', '{{n}} arquivos enviados ao Estúdio') : tr('Esses arquivos já estão no Estúdio'), { tone: added ? 'success' : 'info' });
   router.navigate('/(tabs)/(studio)');
 }
 
@@ -64,16 +65,16 @@ async function share(uris: string[], name: string) {
   try {
     await shareFiles(uris, name);
   } catch {
-    toast('Compartilhar não está disponível aqui', { tone: 'error' });
+    toast(tr('Compartilhar não está disponível aqui'), { tone: 'error' });
   }
 }
 
 function remove(entries: Entry[], after: () => void) {
   const n = entries.length;
   confirmDestructive({
-    title: n === 1 ? `Excluir “${entries[0].name}”?` : `Excluir ${n} itens?`,
-    message: 'Esta ação não pode ser desfeita.',
-    confirm: n === 1 ? 'Excluir' : `Excluir ${n} itens`,
+    title: n === 1 ? tr('Excluir “{{name}}”?', { name: entries[0].name }) : tr('Excluir {{n}} itens?', { n }),
+    message: tr('Esta ação não pode ser desfeita.'),
+    confirm: n === 1 ? tr('Excluir') : tr('Excluir {{n}} itens', { n }),
     onConfirm: () => {
       deleteEntries(entries.map((e) => e.uri));
       const gone = new Set(entries.map((e) => e.uri));
@@ -87,6 +88,7 @@ function remove(entries: Entry[], after: () => void) {
 
 export function FolderBrowser({ uri, title, isRoot }: { uri: string; title: string; isRoot?: boolean }) {
   const t = useTheme();
+  useLang();
   const [version, setVersion] = useState(0);
   const [selecting, setSelecting] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -118,46 +120,46 @@ export function FolderBrowser({ uri, title, isRoot }: { uri: string; title: stri
   };
 
   const importHere = async (kind: 'photos' | 'files') => {
-    if (isWeb) return toast('Na web, use os arquivos de exemplo no Estúdio', { tone: 'info' });
+    if (isWeb) return toast(tr('Na web, use os arquivos de exemplo no Estúdio'), { tone: 'info' });
     try {
       const items = kind === 'photos' ? await importMedia(uri) : await importDocuments(uri);
       refresh();
       if (items.length) {
         haptics.success();
-        toast(`${items.length} importados para “${title}”`, {
+        toast(tr('{{n}} importados para “{{folder}}”', { n: items.length, folder: title }), {
           tone: 'success',
-          action: { label: 'Renomear', onPress: () => sendToStudio(items.map((i) => ({ uri: i.uri, name: i.name, isDirectory: false, size: i.size, modifiedAt: i.modifiedAt, createdAt: i.createdAt })), uri) },
+          action: { label: tr('Renomear'), onPress: () => sendToStudio(items.map((i) => ({ uri: i.uri, name: i.name, isDirectory: false, size: i.size, modifiedAt: i.modifiedAt, createdAt: i.createdAt })), uri) },
         });
       }
     } catch {
-      toast('Não foi possível importar', { tone: 'error' });
+      toast(tr('Não foi possível importar'), { tone: 'error' });
     }
   };
 
   const openAdd = () =>
     showActions({
-      title: `Adicionar em “${title}”`,
+      title: tr('Adicionar em “{{folder}}”', { folder: title }),
       options: [
-        { label: 'Nova pasta', icon: { sf: 'folder.badge.plus', md: 'create_new_folder' }, onPress: () => router.push({ pathname: '/new-folder', params: { parent: uri } }) },
-        { label: 'Importar fotos e vídeos', icon: { sf: 'photo.on.rectangle', md: 'photo_library' }, onPress: () => importHere('photos') },
-        { label: 'Importar do app Arquivos', icon: { sf: 'doc.on.doc', md: 'description' }, onPress: () => importHere('files') },
+        { label: tr('Nova pasta'), icon: { sf: 'folder.badge.plus', md: 'create_new_folder' }, onPress: () => router.push({ pathname: '/new-folder', params: { parent: uri } }) },
+        { label: tr('Importar fotos e vídeos'), icon: { sf: 'photo.on.rectangle', md: 'photo_library' }, onPress: () => importHere('photos') },
+        { label: tr('Importar do app Arquivos'), icon: { sf: 'doc.on.doc', md: 'description' }, onPress: () => importHere('files') },
       ],
     });
 
   const entryActions = (e: Entry) =>
     showActions({
       title: e.name,
-      message: e.isDirectory ? `${counts.get(e.uri) ?? 0} itens` : `${formatBytes(e.size)}${e.modifiedAt ? ` · ${new Date(e.modifiedAt).toLocaleDateString('pt-BR')}` : ''}`,
+      message: e.isDirectory ? trn(counts.get(e.uri) ?? 0, '{{n}} item', '{{n}} itens') : `${formatBytes(e.size)}${e.modifiedAt ? ` · ${new Date(e.modifiedAt).toLocaleDateString(langTag())}` : ''}`,
       options: [
-        { label: e.isDirectory ? 'Renomear conteúdo no Estúdio' : 'Renomear no Estúdio', icon: { sf: 'wand.and.rays', md: 'auto_fix_high' }, onPress: () => sendToStudio([e], uri) },
+        { label: e.isDirectory ? tr('Renomear conteúdo no Estúdio') : tr('Renomear no Estúdio'), icon: { sf: 'wand.and.rays', md: 'auto_fix_high' }, onPress: () => sendToStudio([e], uri) },
         ...(e.isDirectory
-          ? [{ label: 'Renomear pasta', icon: { sf: 'pencil', md: 'edit' }, onPress: () => router.push({ pathname: '/new-folder', params: { parent: uri, rename: e.uri, current: e.name } }) }]
+          ? [{ label: tr('Renomear pasta'), icon: { sf: 'pencil', md: 'edit' }, onPress: () => router.push({ pathname: '/new-folder', params: { parent: uri, rename: e.uri, current: e.name } }) }]
           : [
-              { label: 'Visualizar', icon: { sf: 'eye', md: 'visibility' }, onPress: async () => void ((await previewFile(e.uri)) || toast('Sem visualização para este tipo', { tone: 'info' })) },
-              { label: 'Compartilhar', icon: { sf: 'square.and.arrow.up', md: 'share' }, onPress: () => share([e.uri], e.name) },
+              { label: tr('Visualizar'), icon: { sf: 'eye', md: 'visibility' }, onPress: async () => void ((await previewFile(e.uri)) || toast(tr('Sem visualização para este tipo'), { tone: 'info' })) },
+              { label: tr('Compartilhar'), icon: { sf: 'square.and.arrow.up', md: 'share' }, onPress: () => share([e.uri], e.name) },
             ]),
-        { label: 'Mover…', icon: { sf: 'folder', md: 'drive_file_move' }, onPress: () => router.push({ pathname: '/move', params: { uris: JSON.stringify([e.uri]), from: uri } }) },
-        { label: 'Excluir', destructive: true, icon: { sf: 'trash', md: 'delete' }, onPress: () => remove([e], refresh) },
+        { label: tr('Mover…'), icon: { sf: 'folder', md: 'drive_file_move' }, onPress: () => router.push({ pathname: '/move', params: { uris: JSON.stringify([e.uri]), from: uri } }) },
+        { label: tr('Excluir'), destructive: true, icon: { sf: 'trash', md: 'delete' }, onPress: () => remove([e], refresh) },
       ],
     });
 
@@ -199,7 +201,7 @@ export function FolderBrowser({ uri, title, isRoot }: { uri: string; title: stri
               {item.name}
             </Text>
             <Text variant="footnote" tone="secondary" tabular>
-              {item.isDirectory ? `${counts.get(item.uri) ?? 0} itens` : `${formatBytes(item.size)}${item.modifiedAt ? ` · ${new Date(item.modifiedAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })}` : ''}`}
+              {item.isDirectory ? trn(counts.get(item.uri) ?? 0, '{{n}} item', '{{n}} itens') : `${formatBytes(item.size)}${item.modifiedAt ? ` · ${new Date(item.modifiedAt).toLocaleDateString(langTag(), { day: '2-digit', month: 'short', year: 'numeric' })}` : ''}`}
             </Text>
           </View>
           {!selecting && item.isDirectory && <Icon sf="chevron.right" md="chevron_right" size={14} color={t.tertiary} weight="semibold" />}
@@ -213,8 +215,8 @@ export function FolderBrowser({ uri, title, isRoot }: { uri: string; title: stri
     <View style={{ gap: space.xxl, paddingBottom: space.lg }}>
       <Card>
         <Row
-          title="Renomear uma pasta do aparelho"
-          subtitle={process.env.EXPO_OS === 'android' ? 'Escolha qualquer pasta (DCIM, Downloads, cartão SD) e renomeie no lugar.' : 'Escolha uma pasta no app Arquivos e renomeie no lugar.'}
+          title={tr('Renomear uma pasta do aparelho')}
+          subtitle={process.env.EXPO_OS === 'android' ? tr('Escolha qualquer pasta (DCIM, Downloads, cartão SD) e renomeie no lugar.') : tr('Escolha uma pasta no app Arquivos e renomeie no lugar.')}
           icon={{ sf: 'externaldrive.badge.checkmark', md: 'folder_open' }}
           chevron
           numberOfLines={2}
@@ -222,7 +224,7 @@ export function FolderBrowser({ uri, title, isRoot }: { uri: string; title: stri
         />
       </Card>
       <Text variant="footnote" tone="secondary" weight="600" style={{ textTransform: 'uppercase', letterSpacing: 0.4, paddingHorizontal: space.lg }}>
-        Biblioteca do Lote {driver.freeSpace() ? `· ${formatBytes(driver.freeSpace()!)} livres` : ''}
+        {tr('Biblioteca do Lote')} {driver.freeSpace() ? `· ${tr('{{size}} livres', { size: formatBytes(driver.freeSpace()!) })}` : ''}
       </Text>
     </View>
   ) : null;
@@ -239,8 +241,8 @@ export function FolderBrowser({ uri, title, isRoot }: { uri: string; title: stri
               </Text>
             ) : (
               <View style={{ flexDirection: 'row', gap: space.xs }}>
-                {entries.length > 0 && <IconButton sf="checkmark.circle" md="check_circle" label="Selecionar" onPress={() => setSelecting(true)} />}
-                <IconButton sf="plus" md="add" label="Adicionar" onPress={openAdd} />
+                {entries.length > 0 && <IconButton sf="checkmark.circle" md="check_circle" label={tr('Selecionar')} onPress={() => setSelecting(true)} />}
+                <IconButton sf="plus" md="add" label={tr('Adicionar')} onPress={openAdd} />
               </View>
             ),
         }}
@@ -256,9 +258,9 @@ export function FolderBrowser({ uri, title, isRoot }: { uri: string; title: stri
           <Card style={{ marginHorizontal: space.lg }}>
             <EmptyState
               icon={{ sf: 'folder', md: 'folder' }}
-              title={isRoot ? 'Sua biblioteca está vazia' : 'Pasta vazia'}
-              message={isRoot ? 'Arquivos importados e recebidos pelo Compartilhar ficam aqui, organizados em pastas.' : 'Importe arquivos ou crie uma subpasta.'}
-              action={{ title: 'Adicionar', icon: { sf: 'plus', md: 'add' }, onPress: openAdd }}
+              title={isRoot ? tr('Sua biblioteca está vazia') : tr('Pasta vazia')}
+              message={isRoot ? tr('Arquivos importados e recebidos pelo Compartilhar ficam aqui, organizados em pastas.') : tr('Importe arquivos ou crie uma subpasta.')}
+              action={{ title: tr('Adicionar'), icon: { sf: 'plus', md: 'add' }, onPress: openAdd }}
             />
           </Card>
         }
@@ -278,10 +280,10 @@ export function FolderBrowser({ uri, title, isRoot }: { uri: string; title: stri
       {selecting && (
         <SafeAreaView edges={['bottom']} pointerEvents="box-none" style={styles.toolbarWrap}>
           <Animated.View entering={FadeInDown.duration(220)} exiting={FadeOutDown.duration(150)} style={[styles.toolbar, { backgroundColor: t.surface, boxShadow: t.shadowLift }]}>
-            <Button title={chosen.length ? `Renomear ${chosen.length}` : 'Selecione itens'} size="md" disabled={!chosen.length} style={{ flex: 1 }} onPress={() => { sendToStudio(chosen, uri); exitSelection(); }} />
-            <IconButton sf="square.and.arrow.up" md="share" label="Compartilhar" tone="filled" disabled={!chosen.some((c) => !c.isDirectory)} onPress={() => share(chosen.filter((c) => !c.isDirectory).map((c) => c.uri), title)} />
-            <IconButton sf="folder" md="drive_file_move" label="Mover" tone="filled" disabled={!chosen.length} onPress={() => { router.push({ pathname: '/move', params: { uris: JSON.stringify(chosen.map((c) => c.uri)), from: uri } }); exitSelection(); }} />
-            <IconButton sf="trash" md="delete" label="Excluir" tone="filled" color={t.danger} disabled={!chosen.length} onPress={() => remove(chosen, () => { exitSelection(); refresh(); })} />
+            <Button title={chosen.length ? tr('Renomear {{n}}', { n: chosen.length }) : tr('Selecione itens')} size="md" disabled={!chosen.length} style={{ flex: 1 }} onPress={() => { sendToStudio(chosen, uri); exitSelection(); }} />
+            <IconButton sf="square.and.arrow.up" md="share" label={tr('Compartilhar')} tone="filled" disabled={!chosen.some((c) => !c.isDirectory)} onPress={() => share(chosen.filter((c) => !c.isDirectory).map((c) => c.uri), title)} />
+            <IconButton sf="folder" md="drive_file_move" label={tr('Mover')} tone="filled" disabled={!chosen.length} onPress={() => { router.push({ pathname: '/move', params: { uris: JSON.stringify(chosen.map((c) => c.uri)), from: uri } }); exitSelection(); }} />
+            <IconButton sf="trash" md="delete" label={tr('Excluir')} tone="filled" color={t.danger} disabled={!chosen.length} onPress={() => remove(chosen, () => { exitSelection(); refresh(); })} />
           </Animated.View>
         </SafeAreaView>
       )}

@@ -5,13 +5,16 @@ import { StyleSheet, View } from 'react-native';
 import Animated, { Easing, FadeIn, useAnimatedStyle, useReducedMotion, useSharedValue, withTiming, ZoomIn } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { tr, trn, useLang } from '@/i18n';
 import { kindOf } from '@/engine/text';
 import type { ConflictStrategy, PreviewItem, PreviewSummary } from '@/engine/types';
+import { LimitNotice } from '@/features/pro/LimitNotice';
 import { PreviewRow } from '@/features/studio/PreviewRow';
 import { applyPreview, computePreview, undoBatch, type ApplyOutcome } from '@/services/actions';
 import { isWeb } from '@/services/env';
 import { exportToFolder, saveToPhotos, shareFiles } from '@/services/fs';
 import { haptics } from '@/services/haptics';
+import { FREE_LIMITS, requirePro, usePro } from '@/services/purchases';
 import { useHistory } from '@/store/history';
 import { useSettings } from '@/store/settings';
 import { useStudio } from '@/store/studio';
@@ -55,6 +58,7 @@ function ProgressBar({ progress }: { progress: number }) {
 
 function SuccessView({ outcome, onDone }: { outcome: ApplyOutcome; onDone: () => void }) {
   const t = useTheme();
+  useLang();
   const reduce = useReducedMotion();
   const [busy, setBusy] = useState<string | null>(null);
   const batch = outcome.batch;
@@ -67,7 +71,7 @@ function SuccessView({ outcome, onDone }: { outcome: ApplyOutcome; onDone: () =>
       await fn();
     } catch (e) {
       const msg = e instanceof Error ? e.message : '';
-      toast(msg === 'PHOTOS_DENIED' ? 'Permita o acesso às Fotos nos Ajustes.' : msg === 'SHARE_UNAVAILABLE' ? 'Compartilhar não está disponível aqui.' : 'Não foi possível concluir.', { tone: 'error' });
+      toast(msg === 'PHOTOS_DENIED' ? tr('Permita o acesso às Fotos nos Ajustes.') : msg === 'SHARE_UNAVAILABLE' ? tr('Compartilhar não está disponível aqui.') : tr('Não foi possível concluir.'), { tone: 'error' });
     } finally {
       setBusy(null);
     }
@@ -81,44 +85,44 @@ function SuccessView({ outcome, onDone }: { outcome: ApplyOutcome; onDone: () =>
         </Animated.View>
         <View style={{ gap: 6, alignItems: 'center' }}>
           <Text variant="title1" align="center" tabular>
-            {outcome.ok} {outcome.ok === 1 ? 'arquivo renomeado' : 'arquivos renomeados'}
+            {trn(outcome.ok, '{{n}} arquivo renomeado', '{{n}} arquivos renomeados')}
           </Text>
           <Text variant="subhead" tone="secondary" align="center">
             {outcome.failed.length
-              ? `${outcome.failed.length} não puderam ser renomeados. Veja no Histórico.`
-              : 'Tudo certo. Se mudar de ideia, dá para desfazer a qualquer momento no Histórico.'}
+              ? trn(outcome.failed.length, '{{n}} não pôde ser renomeado. Veja no Histórico.', '{{n}} não puderam ser renomeados. Veja no Histórico.')
+              : tr('Tudo certo. Se mudar de ideia, dá para desfazer a qualquer momento no Histórico.')}
           </Text>
         </View>
       </View>
 
       {uris.length > 0 && (
-        <Section title="Levar para">
-          <Row title={uris.length > 1 ? 'Compartilhar como ZIP' : 'Compartilhar'} icon={{ sf: 'square.and.arrow.up', md: 'share' }} chevron disabled={!!busy || isWeb} onPress={() => run('share', () => shareFiles(uris, batch?.label ?? 'Lote'))} />
-          <Row title="Copiar para uma pasta…" subtitle="iCloud Drive, Google Drive, cartão SD…" icon={{ sf: 'folder.badge.plus', md: 'drive_folder_upload' }} chevron disabled={!!busy || isWeb} onPress={() => run('folder', async () => {
+        <Section title={tr('Levar para')}>
+          <Row title={uris.length > 1 ? tr('Compartilhar como ZIP') : tr('Compartilhar')} icon={{ sf: 'square.and.arrow.up', md: 'share' }} chevron disabled={!!busy || isWeb} onPress={() => run('share', () => shareFiles(uris, batch?.label ?? 'Lote'))} />
+          <Row title={tr('Copiar para uma pasta…')} subtitle={tr('iCloud Drive, Google Drive, cartão SD…')} icon={{ sf: 'folder.badge.plus', md: 'drive_folder_upload' }} chevron disabled={!!busy || isWeb} onPress={() => run('folder', async () => {
             const res = await exportToFolder(uris);
-            if (res) toast(`${res.count} arquivos copiados para “${res.folder}”`, { tone: 'success' });
+            if (res) toast(trn(res.count, '{{n}} arquivo copiado para “{{folder}}”', '{{n}} arquivos copiados para “{{folder}}”', { folder: res.folder }), { tone: 'success' });
           })} />
           {media.length > 0 && (
-            <Row title="Salvar nas Fotos" subtitle={`${media.length} fotos/vídeos com os novos nomes`} icon={{ sf: 'photo.badge.plus', md: 'add_photo_alternate' }} chevron disabled={!!busy || isWeb} onPress={() => run('photos', async () => {
+            <Row title={tr('Salvar nas Fotos')} subtitle={tr('{{n}} fotos/vídeos com os novos nomes', { n: media.length })} icon={{ sf: 'photo.badge.plus', md: 'add_photo_alternate' }} chevron disabled={!!busy || isWeb} onPress={() => run('photos', async () => {
               const n = await saveToPhotos(media);
-              toast(`${n} itens salvos nas Fotos`, { tone: 'success' });
+              toast(trn(n, '{{n}} item salvo nas Fotos', '{{n}} itens salvos nas Fotos'), { tone: 'success' });
             })} />
           )}
         </Section>
       )}
 
       <View style={{ gap: space.md }}>
-        <Button title="Concluído" onPress={onDone} />
+        <Button title={tr('Concluído')} onPress={onDone} />
         {batch && (
           <Button
-            title="Desfazer"
+            title={tr('Desfazer')}
             variant="secondary"
             icon={{ sf: 'arrow.uturn.backward', md: 'undo' }}
             loading={busy === 'undo'}
             onPress={() =>
               run('undo', async () => {
                 const res = await undoBatch(useHistory.getState().batches.find((b) => b.id === batch.id) ?? batch);
-                toast(`${res.restored} nomes restaurados`, { tone: 'success' });
+                toast(trn(res.restored, '{{n}} nome restaurado', '{{n}} nomes restaurados'), { tone: 'success' });
                 onDone();
               })
             }
@@ -131,6 +135,7 @@ function SuccessView({ outcome, onDone }: { outcome: ApplyOutcome; onDone: () =>
 
 export default function ReviewScreen() {
   const t = useTheme();
+  useLang();
   const { auto } = useLocalSearchParams<{ auto?: string }>();
   const conflict = useSettings((s) => s.conflict);
   const setSettings = useSettings((s) => s.set);
@@ -155,9 +160,12 @@ export default function ReviewScreen() {
 
   const changing = summary.changed + summary.resolved;
   const blocked = conflict === 'stop' && (summary.conflicts > 0 || summary.errors > 0);
+  const locked = usePro((st) => !st.isPro) && changing > FREE_LIMITS.filesPerBatch;
 
   const apply = useCallback(async () => {
     if (phase !== 'review') return;
+    const count = summary.changed + summary.resolved;
+    if (count > FREE_LIMITS.filesPerBatch && !(await requirePro(tr('O plano grátis renomeia até {{n}} arquivos por lote.', { n: FREE_LIMITS.filesPerBatch })))) return;
     setPhase('running');
     haptics.medium();
     const res = await applyPreview(summary, (done, total) => setProgress(done / total));
@@ -204,9 +212,9 @@ export default function ReviewScreen() {
     <View style={{ flex: 1, backgroundColor: bg }}>
       <SafeAreaView edges={['top']} style={styles.topBar}>
         <Text variant="body" tone="accent" onPress={() => phase === 'review' && router.dismiss()} suppressHighlighting accessibilityRole="button" style={{ opacity: phase === 'running' ? 0.3 : 1 }}>
-          Cancelar
+          {tr('Cancelar')}
         </Text>
-        <Text variant="headline">Revisar</Text>
+        <Text variant="headline">{tr('Revisar')}</Text>
         <View style={{ width: 64 }} />
       </SafeAreaView>
       <FlashList
@@ -217,49 +225,57 @@ export default function ReviewScreen() {
           <View style={{ padding: space.lg, gap: space.xl }}>
             <View style={{ gap: 4 }}>
               <Text variant="largeTitle" tabular>
-                {changing} {changing === 1 ? 'arquivo' : 'arquivos'}
+                {trn(changing, '{{n}} arquivo', '{{n}} arquivos')}
               </Text>
               <Text variant="subhead" tone="secondary">
-                serão renomeados{summary.items.some((i) => i.subfolder) ? ' e organizados em pastas' : ''}. Nada muda até você confirmar.
+                {summary.items.some((i) => i.subfolder)
+                  ? trn(changing, 'será renomeado e organizado em pastas. Nada muda até você confirmar.', 'serão renomeados e organizados em pastas. Nada muda até você confirmar.')
+                  : trn(changing, 'será renomeado. Nada muda até você confirmar.', 'serão renomeados. Nada muda até você confirmar.')}
               </Text>
             </View>
             <View style={styles.stats}>
-              <Stat value={summary.changed + summary.resolved} label="Mudam" tone="accent" />
-              <Stat value={summary.unchanged} label="Iguais" tone="secondary" />
-              <Stat value={summary.conflicts + summary.resolved} label="Conflitos" tone={summary.conflicts ? 'warning' : 'secondary'} />
-              <Stat value={summary.errors} label="Erros" tone={summary.errors ? 'danger' : 'secondary'} />
+              <Stat value={summary.changed + summary.resolved} label={tr('Mudam')} tone="accent" />
+              <Stat value={summary.unchanged} label={tr('Iguais')} tone="secondary" />
+              <Stat value={summary.conflicts + summary.resolved} label={tr('Conflitos')} tone={summary.conflicts ? 'warning' : 'secondary'} />
+              <Stat value={summary.errors} label={tr('Erros')} tone={summary.errors ? 'danger' : 'secondary'} />
             </View>
             {(summary.conflicts > 0 || summary.resolved > 0) && (
               <Card padded style={{ gap: space.md }}>
                 <Text variant="subhead" weight="600">
-                  Nomes repetidos
+                  {tr('Nomes repetidos')}
                 </Text>
                 <Segmented<ConflictStrategy>
                   options={[
-                    { value: 'suffix', label: 'Adicionar (2)' },
-                    { value: 'skip', label: 'Pular' },
-                    { value: 'stop', label: 'Parar' },
+                    { value: 'suffix', label: tr('Adicionar (2)') },
+                    { value: 'skip', label: tr('Pular') },
+                    { value: 'stop', label: tr('Parar') },
                   ]}
                   value={conflict}
                   onChange={(c) => setSettings({ conflict: c })}
                 />
                 <Text variant="footnote" tone="secondary">
-                  {conflict === 'suffix' ? 'Arquivos com o mesmo nome ganham “(2)”, “(3)”…' : conflict === 'skip' ? 'Os repetidos ficam com o nome atual.' : 'Nada é renomeado enquanto houver conflitos.'}
+                  {conflict === 'suffix' ? tr('Arquivos com o mesmo nome ganham “(2)”, “(3)”…') : conflict === 'skip' ? tr('Os repetidos ficam com o nome atual.') : tr('Nada é renomeado enquanto houver conflitos.')}
                 </Text>
               </Card>
             )}
+            {changing > FREE_LIMITS.filesPerBatch && (
+              <LimitNotice
+                title={tr('Este lote passa do plano grátis')}
+                message={tr('São {{n}} arquivos e o plano grátis renomeia até {{limit}} por vez. Ao tocar em Renomear, você pode desbloquear o Lote Pro.', { n: changing, limit: FREE_LIMITS.filesPerBatch })}
+              />
+            )}
             <Segmented<Filter>
               options={[
-                { value: 'changes', label: `Mudanças` },
-                { value: 'problems', label: `Atenção` },
-                { value: 'all', label: `Todos` },
+                { value: 'changes', label: tr('Mudanças') },
+                { value: 'problems', label: tr('Atenção') },
+                { value: 'all', label: tr('Todos') },
               ]}
               value={filter}
               onChange={setFilter}
             />
             {items.length === 0 && (
               <Text variant="subhead" tone="secondary" align="center" style={{ paddingVertical: space.xxl }}>
-                {filter === 'problems' ? 'Nenhum problema encontrado.' : 'Nenhum arquivo aqui.'}
+                {filter === 'problems' ? tr('Nenhum problema encontrado.') : tr('Nenhum arquivo aqui.')}
               </Text>
             )}
           </View>
@@ -270,14 +286,14 @@ export default function ReviewScreen() {
         {phase === 'running' ? (
           <View style={{ gap: space.sm, paddingVertical: space.sm }}>
             <Text variant="subhead" weight="600" tabular>
-              Renomeando… {Math.round(progress * changing)} de {changing}
+              {tr('Renomeando… {{done}} de {{total}}', { done: Math.round(progress * changing), total: changing })}
             </Text>
             <ProgressBar progress={progress} />
           </View>
         ) : (
           <Button
-            title={blocked ? 'Resolva os conflitos para continuar' : `Renomear ${changing} ${changing === 1 ? 'arquivo' : 'arquivos'}`}
-            icon={{ sf: 'wand.and.rays', md: 'auto_fix_high' }}
+            title={blocked ? tr('Resolva os conflitos para continuar') : locked ? tr('Desbloquear e renomear {{n}}', { n: changing }) : trn(changing, 'Renomear {{n}} arquivo', 'Renomear {{n}} arquivos')}
+            icon={locked ? { sf: 'lock.fill', md: 'lock' } : { sf: 'wand.and.rays', md: 'auto_fix_high' }}
             disabled={changing === 0 || blocked}
             onPress={apply}
             haptic={false}

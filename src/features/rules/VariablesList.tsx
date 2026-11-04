@@ -2,7 +2,8 @@ import * as Clipboard from 'expo-clipboard';
 import { router } from 'expo-router';
 import { ScrollView, View } from 'react-native';
 
-import { FILTERS, VARIABLES } from '@/engine/template';
+import { m, tr, useLang } from '@/i18n';
+import { filters, variables } from '@/engine/template';
 import { useInsertBus } from '@/hooks/useInsertBus';
 import { haptics } from '@/services/haptics';
 import { Row, Section } from '@/ui/List';
@@ -11,7 +12,7 @@ import { Text } from '@/ui/Text';
 import { toast } from '@/ui/Toast';
 import { radius, space, type, useTheme } from '@/ui/theme';
 
-const GROUPS = ['Nome', 'Contador', 'Data', 'Arquivo', 'Mídia', 'Únicos'] as const;
+const GROUPS = [m('Nome'), m('Contador'), m('Data'), m('Arquivo'), m('Mídia'), m('Únicos')];
 
 /**
  * Variables catalog. Inside the rule editor, tapping inserts at the cursor;
@@ -19,7 +20,9 @@ const GROUPS = ['Nome', 'Contador', 'Data', 'Arquivo', 'Mídia', 'Únicos'] as c
  */
 export function VariablesList({ mode }: { mode: 'insert' | 'reference' }) {
   const t = useTheme();
+  useLang();
   const { contentMax } = useLayout();
+  const vars = variables();
   const pick = async (token: string) => {
     haptics.selection();
     if (mode === 'insert') {
@@ -27,7 +30,7 @@ export function VariablesList({ mode }: { mode: 'insert' | 'reference' }) {
       router.back();
     } else {
       await Clipboard.setStringAsync(token);
-      toast(`${token} copiado`, { tone: 'success' });
+      toast(tr('{{token}} copiado', { token }), { tone: 'success' });
     }
   };
   return (
@@ -37,15 +40,15 @@ export function VariablesList({ mode }: { mode: 'insert' | 'reference' }) {
       contentContainerStyle={{ padding: space.lg, gap: space.xxl, paddingBottom: space.xxxl * 2, width: '100%', maxWidth: contentMax, alignSelf: 'center' }}
     >
       <Text variant="subhead" tone="secondary" style={{ paddingHorizontal: space.xs }}>
-        {mode === 'insert' ? 'Toque para inserir no cursor.' : 'Toque para copiar.'} Combine com filtros: {'{name|kebab}'}, {'{folder|upper|slice:0:4}'}.
+        {mode === 'insert' ? tr('Toque para inserir no cursor.') : tr('Toque para copiar.')} {tr('Combine com filtros:')} {'{name|kebab}'}, {'{folder|upper|slice:0:4}'}.
       </Text>
       {GROUPS.map((g) => (
-        <Section key={g} title={g}>
-          {VARIABLES.filter((v) => v.group === g).map((v) => (
+        <Section key={g} title={tr(g)}>
+          {vars.filter((v) => v.group === g).map((v) => (
             <Row
               key={v.token}
               title={v.label}
-              subtitle={`${v.description} · ex.: ${v.example}`}
+              subtitle={`${v.description} · ${tr('ex.:')} ${v.example}`}
               onPress={() => pick(v.token)}
               right={
                 <View style={{ backgroundColor: t.fill, borderRadius: radius.badge, paddingHorizontal: 8, paddingVertical: 3, maxWidth: 170 }}>
@@ -58,8 +61,8 @@ export function VariablesList({ mode }: { mode: 'insert' | 'reference' }) {
           ))}
         </Section>
       ))}
-      <Section title="Filtros" footer="Encadeie quantos quiser com |. Ex.: {original|ascii|kebab|slice:0:30}">
-        {FILTERS.map((f) => (
+      <Section title={tr('Filtros')} footer={tr('Encadeie quantos quiser com |. Ex.: {original|ascii|kebab|slice:0:30}')}>
+        {filters().map((f) => (
           <Row
             key={f.token}
             title={f.description}

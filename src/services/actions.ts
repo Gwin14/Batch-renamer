@@ -23,7 +23,9 @@ import {
   type MoveOp,
   type MoveResult,
 } from '@/services/fs';
+import { tr } from '@/i18n';
 import { haptics } from '@/services/haptics';
+import { maybeRequestReview } from '@/services/review';
 import { findPreset, usePresets } from '@/store/presets';
 import { useHistory, type HistoryBatch } from '@/store/history';
 import { useSettings } from '@/store/settings';
@@ -31,9 +33,12 @@ import { useStudio } from '@/store/studio';
 
 function batchLabel(rules: { type: string; enabled: boolean }[]) {
   const active = rules.filter((r) => r.enabled);
-  if (active.length === 1) return RULE_META[active[0].type as keyof typeof RULE_META]?.title ?? 'Regra única';
-  return `${active.length} regras`;
+  if (active.length === 1) return RULE_META[active[0].type as keyof typeof RULE_META]?.title ?? tr('Regra única');
+  return tr('{{n}} regras', { n: active.length });
 }
+
+// Older installs persisted the pt-BR default; treat it as “use the localized default”.
+const importFolderName = (custom: string) => (custom && custom !== 'Importados' ? custom : tr('Importados'));
 
 export type ImportKind = 'photos' | 'files' | 'camera' | 'folder';
 
@@ -47,7 +52,7 @@ const folderLabel = (uri: string) => (uri === libraryRoot() ? LIBRARY_DIR : disp
 
 export async function importInto(kind: ImportKind): Promise<{ added: number; folder?: string }> {
   const studio = useStudio.getState();
-  const dest = folderFor(useSettings.getState().importFolder || 'Importados');
+  const dest = folderFor(importFolderName(useSettings.getState().importFolder));
   switch (kind) {
     case 'photos': {
       const items = await importMedia(dest);
@@ -71,8 +76,8 @@ export async function importInto(kind: ImportKind): Promise<{ added: number; fol
 }
 
 export async function importSharedPayloads(payloads: Parameters<typeof importShared>[0]) {
-  const items = await importShared(payloads);
-  return useStudio.getState().addFiles(items);
+  const { items, failed } = await importShared(payloads);
+  return { added: useStudio.getState().addFiles(items), failed };
 }
 
 export interface ApplyOutcome {
@@ -108,7 +113,9 @@ export async function applyPreview(summary: PreviewSummary, onProgress?: (done: 
       })
     : null;
 
-  useSettings.getState().set({ batches: useSettings.getState().batches + 1 });
+  const batches = useSettings.getState().batches + 1;
+  useSettings.getState().set({ batches });
+  maybeRequestReview(batches, failed.length > 0);
   if (failed.length && !ok.length) haptics.error();
   else if (failed.length) haptics.warning();
   else haptics.success();

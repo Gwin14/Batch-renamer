@@ -6,8 +6,10 @@ import { Appearance, AppState } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { useHydrated } from '@/hooks/useHydrated';
+import { applyLangPref, tr, useLang } from '@/i18n';
 import { useWidgetSync } from '@/hooks/useWidgetSync';
 import { revalidateStudio } from '@/services/actions';
+import { initPurchases } from '@/services/purchases';
 import { useSettings } from '@/store/settings';
 import { ActionSheetHost } from '@/ui/ActionSheet';
 import { modalStackOptions } from '@/ui/navigation';
@@ -23,6 +25,7 @@ export default function RootLayout() {
   const onboarded = useSettings((s) => s.onboarded);
   const pref = useSettings((s) => s.theme);
   const t = useTheme();
+  useLang();
 
   // Native controls (switches, sheets, tab bar, pickers) follow the in-app theme choice.
   useEffect(() => {
@@ -38,7 +41,16 @@ export default function RootLayout() {
   }, [ready]);
 
   useEffect(() => {
-    const sub = AppState.addEventListener('change', (s) => s === 'active' && revalidateStudio());
+    initPurchases();
+  }, []);
+
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (s) => {
+      if (s !== 'active') return;
+      // Android can change the device language without restarting the app.
+      applyLangPref(useSettings.getState().language);
+      revalidateStudio();
+    });
     return () => sub.remove();
   }, []);
 
@@ -62,7 +74,7 @@ export default function RootLayout() {
           <Stack.Protected guard={onboarded}>
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="rules" options={{ presentation: 'modal', headerShown: false }} />
-            <Stack.Screen name="review" options={{ ...modal, presentation: 'modal', title: 'Revisar', headerShown: false }} />
+            <Stack.Screen name="review" options={{ ...modal, presentation: 'modal', title: tr('Revisar'), headerShown: false }} />
             <Stack.Screen
               name="save-preset"
               options={{ ...modal, presentation: 'formSheet', headerShown: false, sheetAllowedDetents: [0.62, 0.95], sheetGrabberVisible: true, sheetCornerRadius: 28 }}
@@ -81,11 +93,12 @@ export default function RootLayout() {
             />
             <Stack.Screen name="quick" options={{ presentation: 'transparentModal', animation: 'fade', headerShown: false, contentStyle: { backgroundColor: 'transparent' } }} />
             <Stack.Screen name="expo-sharing" options={{ presentation: 'transparentModal', animation: 'fade', headerShown: false, contentStyle: { backgroundColor: 'transparent' } }} />
+            <Stack.Screen name="pro" options={{ presentation: 'transparentModal', animation: 'fade', headerShown: false, contentStyle: { backgroundColor: 'transparent' } }} />
           </Stack.Protected>
           <Stack.Protected guard={!onboarded}>
             <Stack.Screen name="onboarding" options={{ headerShown: false, animation: 'fade', gestureEnabled: false }} />
           </Stack.Protected>
-          <Stack.Screen name="+not-found" options={{ title: 'Não encontrado' }} />
+          <Stack.Screen name="+not-found" options={{ title: tr('Não encontrado') }} />
         </Stack>
         <ToastHost />
         <ActionSheetHost />

@@ -8,17 +8,19 @@ import { SheetHeader } from '@/ui/Sheet';
 import { Text } from '@/ui/Text';
 import { space, useTheme } from '@/ui/theme';
 import { Fragment } from 'react';
+import { tr, useLang } from '@/i18n';
 
 /** Chooses the preset used by the share sheet, widgets, lock screen and home-screen shortcuts. */
 export default function QuickPresetSheet() {
   const t = useTheme();
+  useLang();
   const custom = usePresets((s) => s.custom);
   const usage = usePresets((s) => s.builtInUsage);
   const quick = usePresets((s) => s.quickPresetId);
   const list = allPresets({ custom, builtInUsage: usage });
   return (
     <ScrollView style={{ backgroundColor: t.scheme === 'dark' ? t.surface : t.bg }} contentContainerStyle={{ padding: space.lg, gap: space.lg, paddingBottom: space.xxxl }}>
-      <SheetHeader title="Preset rápido" subtitle="Aplicado ao receber arquivos pelo Compartilhar, no widget e nos atalhos." />
+      <SheetHeader title={tr('Preset rápido')} subtitle={tr('Aplicado ao receber arquivos pelo Compartilhar, no widget e nos atalhos.')} />
       <Card>
         {list.map((p, i) => (
           <Fragment key={p.id}>
@@ -38,7 +40,7 @@ export default function QuickPresetSheet() {
         ))}
       </Card>
       <Text variant="footnote" tone="secondary" style={{ paddingHorizontal: space.lg }}>
-        Você sempre revisa antes de renomear.
+        {tr('Você sempre revisa antes de renomear.')}
       </Text>
     </ScrollView>
   );
