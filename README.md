@@ -45,6 +45,11 @@ npx expo run:ios      # ou: npx expo run:android
 - Salvar, editar, favoritar, duplicar, buscar e **compartilhar/importar presets** (`.lote.json`)
 - **Preset rápido** usado pelo Compartilhar, widgets e atalhos
 
+**Idiomas**
+- Português (Brasil), English, Español, Français e Deutsch, com modo **Automático** (segue o idioma do aparelho; padrão) ou escolha manual em Ajustes → Idioma
+- Textos em `src/i18n`: o português é a fonte (`tr('…')`) e `src/i18n/locales/*.ts` traz as traduções; `npm test` falha se faltar alguma
+- Nome do app e textos de permissão localizados em `locales/*.json`; idioma por app nos Ajustes do iOS/Android via `expo-localization`
+
 **Integrações nativas** (só no build; no Expo Go ficam desligadas e o app avisa)
 - Share extension iOS e share intent Android (`expo-sharing`) → arquivos chegam no Estúdio
 - Widgets de tela inicial: iOS (pequeno/médio, SwiftUI) e Android

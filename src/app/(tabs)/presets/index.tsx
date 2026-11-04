@@ -2,6 +2,7 @@ import { router, Stack } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { ScrollView, View } from 'react-native';
 
+import { tr, trn, useLang } from '@/i18n';
 import type { Preset } from '@/engine/presets';
 import { presetActions } from '@/features/presets/actions';
 import { haptics } from '@/services/haptics';
@@ -17,11 +18,12 @@ import { toast } from '@/ui/Toast';
 import { space, useTheme } from '@/ui/theme';
 
 function PresetRow({ p, quick }: { p: Preset; quick: boolean }) {
+  useLang();
   const t = useTheme();
   return (
     <Row
       title={p.name}
-      subtitle={p.description || `${p.rules.length} ${p.rules.length === 1 ? 'regra' : 'regras'}`}
+      subtitle={p.description || trn(p.rules.length, '{{n}} regra', '{{n}} regras')}
       icon={{ sf: p.sf, md: p.md }}
       chevron
       onPress={() => router.push({ pathname: '/presets/[id]', params: { id: p.id } })}
@@ -31,7 +33,7 @@ function PresetRow({ p, quick }: { p: Preset; quick: boolean }) {
       }}
       right={
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-          {quick && <StatusBadge tone="accent" label="Rápido" />}
+          {quick && <StatusBadge tone="accent" label={tr('Rápido')} />}
           {p.favorite && <Icon sf="star.fill" md="star" size={14} color={t.accent} />}
         </View>
       }
@@ -40,6 +42,7 @@ function PresetRow({ p, quick }: { p: Preset; quick: boolean }) {
 }
 
 export default function PresetsScreen() {
+  useLang();
   const { contentMax } = useLayout();
   const custom = usePresets((s) => s.custom);
   const usage = usePresets((s) => s.builtInUsage);
@@ -56,7 +59,7 @@ export default function PresetsScreen() {
 
   const saveCurrent = () => {
     if (!useStudio.getState().rules.length) {
-      toast('Monte as regras no Estúdio e salve aqui', { tone: 'info' });
+      toast(tr('Monte as regras no Estúdio e salve aqui'), { tone: 'info' });
       return router.navigate('/(tabs)/(studio)');
     }
     router.push('/save-preset');
@@ -66,27 +69,27 @@ export default function PresetsScreen() {
     <>
       <Stack.Screen
         options={{
-          headerRight: () => <IconButton sf="plus" md="add" label="Salvar regras atuais como preset" onPress={saveCurrent} />,
-          headerSearchBarOptions: { placeholder: 'Buscar presets', onChangeText: (e) => setQuery(e.nativeEvent.text), hideWhenScrolling: true },
+          headerRight: () => <IconButton sf="plus" md="add" label={tr('Salvar regras atuais como preset')} onPress={saveCurrent} />,
+          headerSearchBarOptions: { placeholder: tr('Buscar presets'), onChangeText: (e) => setQuery(e.nativeEvent.text), hideWhenScrolling: true },
         }}
       />
       <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ padding: space.lg, gap: space.xxl, paddingBottom: space.xxxl * 2, width: '100%', maxWidth: contentMax, alignSelf: 'center' }}>
         {recent.length > 0 && (
-          <Section title="Usados recentemente">
+          <Section title={tr('Usados recentemente')}>
             {recent.map((p) => (
               <PresetRow key={p.id} p={p} quick={p.id === quickId} />
             ))}
           </Section>
         )}
         {favorites.length > 0 && (
-          <Section title="Favoritos">
+          <Section title={tr('Favoritos')}>
             {favorites.map((p) => (
               <PresetRow key={p.id} p={p} quick={p.id === quickId} />
             ))}
           </Section>
         )}
         {mine.length > 0 ? (
-          <Section title="Seus presets" footer="Toque e segure para mais opções.">
+          <Section title={tr('Seus presets')} footer={tr('Toque e segure para mais opções.')}>
             {mine.map((p) => (
               <PresetRow key={p.id} p={p} quick={p.id === quickId} />
             ))}
@@ -95,14 +98,14 @@ export default function PresetsScreen() {
           <Card>
             <EmptyState
               icon={{ sf: 'square.stack.3d.up', md: 'stacks' }}
-              title="Salve suas combinações"
-              message="Montou regras que vai usar de novo? Salve como preset e aplique com um toque — também pelo Compartilhar e pelo widget."
-              action={{ title: 'Salvar regras atuais', onPress: saveCurrent, icon: { sf: 'square.and.arrow.down', md: 'save' } }}
+              title={tr('Salve suas combinações')}
+              message={tr('Montou regras que vai usar de novo? Salve como preset e aplique com um toque — também pelo Compartilhar e pelo widget.')}
+              action={{ title: tr('Salvar regras atuais'), onPress: saveCurrent, icon: { sf: 'square.and.arrow.down', md: 'save' } }}
             />
           </Card>
         ) : null}
         {builtIns.length > 0 && (
-          <Section title="Prontos para usar">
+          <Section title={tr('Prontos para usar')}>
             {builtIns.map((p) => (
               <PresetRow key={p.id} p={p} quick={p.id === quickId} />
             ))}
@@ -110,7 +113,7 @@ export default function PresetsScreen() {
         )}
         {!!q && !favorites.length && !mine.length && !builtIns.length && (
           <Text variant="subhead" tone="secondary" align="center" style={{ paddingVertical: space.xxxl }}>
-            Nenhum preset com “{query}”.
+            {tr('Nenhum preset com “{{query}}”.', { query })}
           </Text>
         )}
       </ScrollView>

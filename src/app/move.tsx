@@ -10,17 +10,19 @@ import { SheetHeader } from '@/ui/Sheet';
 import { Text } from '@/ui/Text';
 import { toast } from '@/ui/Toast';
 import { space, useTheme } from '@/ui/theme';
+import { langTag, tr, trn, useLang } from '@/i18n';
 
 function tree(uri: string, depth: number, exclude: Set<string>): { uri: string; name: string; depth: number }[] {
   if (depth > 5) return [];
   return listFolder(uri)
     .filter((e) => e.isDirectory && !exclude.has(e.uri))
-    .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'))
+    .sort((a, b) => a.name.localeCompare(b.name, langTag()))
     .flatMap((e) => [{ uri: e.uri, name: e.name, depth }, ...tree(e.uri, depth + 1, exclude)]);
 }
 
 export default function MoveSheet() {
   const t = useTheme();
+  useLang();
   const { uris: raw, from } = useLocalSearchParams<{ uris?: string; from?: string }>();
   const uris: string[] = useMemo(() => {
     try {
@@ -48,13 +50,13 @@ export default function MoveSheet() {
       } catch {}
     }
     haptics.success();
-    toast(`${moved} ${moved === 1 ? 'item movido' : 'itens movidos'} para “${dest === root ? LIBRARY_DIR : displayName(dest)}”`, { tone: 'success' });
+    toast(trn(moved, '{{n}} item movido para “{{dest}}”', '{{n}} itens movidos para “{{dest}}”', { dest: dest === root ? LIBRARY_DIR : displayName(dest) }), { tone: 'success' });
     router.back();
   };
 
   return (
     <View style={{ flex: 1, backgroundColor: t.scheme === 'dark' ? t.surface : t.bg, paddingHorizontal: space.lg, gap: space.lg }}>
-      <SheetHeader title="Mover para…" subtitle={`${uris.length} ${uris.length === 1 ? 'item' : 'itens'}`} />
+      <SheetHeader title={tr('Mover para…')} subtitle={trn(uris.length, '{{n}} item', '{{n}} itens')} />
       <ScrollView contentContainerStyle={{ paddingBottom: space.xxxl }}>
         <Card>
           {folders.map((f, i) => (
@@ -62,7 +64,7 @@ export default function MoveSheet() {
               <Row
                 title={f.name}
                 icon={{ sf: f.depth === 0 ? 'tray.full.fill' : 'folder.fill', md: f.depth === 0 ? 'inventory_2' : 'folder' }}
-                value={f.uri === from ? 'atual' : undefined}
+                value={f.uri === from ? tr('atual') : undefined}
                 disabled={f.uri === from || busy}
                 onPress={() => moveTo(f.uri)}
               />
@@ -71,7 +73,7 @@ export default function MoveSheet() {
           ))}
         </Card>
         <Text variant="footnote" tone="secondary" style={{ padding: space.lg }}>
-          Para criar uma pasta nova, use + na aba Arquivos.
+          {tr('Para criar uma pasta nova, use + na aba Arquivos.')}
         </Text>
       </ScrollView>
     </View>

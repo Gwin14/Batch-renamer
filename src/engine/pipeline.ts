@@ -1,3 +1,4 @@
+import { tr } from '../i18n/core';
 import { applyRule, type WorkingName } from './rules';
 import { joinName, sanitize, splitName } from './text';
 import type { FileItem, PipelineOptions, PreviewItem, PreviewSummary, Rule } from './types';
@@ -163,11 +164,11 @@ export function runPipeline({ files, rules, options, occupied }: PipelineInput):
 
     const leadTo = members[0].make(r.base);
     if (!r.base.trim() || (leadTo.startsWith('.') && !lead.name.startsWith('.'))) {
-      pushAll(r.base, 'error', 'O nome ficaria vazio');
+      pushAll(r.base, 'error', tr('O nome ficaria vazio'));
       continue;
     }
     if (members.some((m) => byteLength(m.make(r.base)) > MAX_NAME_BYTES)) {
-      pushAll(r.base, 'error', 'Nome longo demais (máx. 255 bytes)');
+      pushAll(r.base, 'error', tr('Nome longo demais (máx. 255 bytes)'));
       continue;
     }
 
@@ -199,9 +200,9 @@ export function runPipeline({ files, rules, options, occupied }: PipelineInput):
         while (anyTaken(`${r.base} (${n})`) && n < 10000) n++;
         const base = `${r.base} (${n})`;
         claimAll(base);
-        settle(base, 'resolved', 'Sufixo adicionado para evitar duplicidade');
+        settle(base, 'resolved', tr('Sufixo adicionado para evitar duplicidade'));
       } else {
-        pushAll(r.base, 'conflict', 'Já existe um arquivo com esse nome');
+        pushAll(r.base, 'conflict', tr('Já existe um arquivo com esse nome'));
       }
       continue;
     }

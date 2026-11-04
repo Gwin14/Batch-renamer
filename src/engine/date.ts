@@ -1,5 +1,20 @@
-const MONTHS = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
-const WEEKDAYS = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
+import { getLang, m, tr, type Lang } from '../i18n/core';
+
+/** Month and weekday names follow the app language (used by MMMM / dddd in names). */
+const MONTHS: Record<Lang, string[]> = {
+  pt: ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'],
+  en: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+  es: ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'],
+  fr: ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'],
+  de: ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'],
+};
+const WEEKDAYS: Record<Lang, string[]> = {
+  pt: ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'],
+  en: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+  es: ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'],
+  fr: ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'],
+  de: ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'],
+};
 
 const pad = (n: number, l = 2) => String(n).padStart(l, '0');
 
@@ -11,17 +26,19 @@ const pad = (n: number, l = 2) => String(n).padStart(l, '0');
 export function formatDate(epoch: number, format: string): string {
   const d = new Date(epoch);
   if (Number.isNaN(d.getTime())) return '';
+  const months = MONTHS[getLang()];
+  const weekdays = WEEKDAYS[getLang()];
   const tokens: Record<string, () => string> = {
     YYYY: () => String(d.getFullYear()),
     YY: () => String(d.getFullYear()).slice(-2),
-    MMMM: () => MONTHS[d.getMonth()],
-    MMM: () => MONTHS[d.getMonth()].slice(0, 3),
+    MMMM: () => months[d.getMonth()],
+    MMM: () => months[d.getMonth()].slice(0, 3),
     MM: () => pad(d.getMonth() + 1),
     M: () => String(d.getMonth() + 1),
     DD: () => pad(d.getDate()),
     D: () => String(d.getDate()),
-    dddd: () => WEEKDAYS[d.getDay()],
-    ddd: () => WEEKDAYS[d.getDay()].slice(0, 3),
+    dddd: () => weekdays[d.getDay()],
+    ddd: () => weekdays[d.getDay()].slice(0, 3),
     HH: () => pad(d.getHours()),
     H: () => String(d.getHours()),
     hh: () => pad(d.getHours() % 12 || 12),
@@ -45,13 +62,14 @@ function isoWeek(date: Date): number {
   return Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
 }
 
-export const DATE_FORMATS: { format: string; label: string }[] = [
+/** Date presets offered in the rule editor; labels and the long format follow the app language. */
+export const dateFormats = (): { format: string; label: string }[] => [
   { format: 'YYYY-MM-DD', label: 'ISO' },
-  { format: 'YYYYMMDD', label: 'Compacto' },
-  { format: 'DD-MM-YYYY', label: 'Brasileiro' },
-  { format: 'YYYY-MM-DD_HH-mm-ss', label: 'Com hora' },
-  { format: 'YYYY/MM', label: 'Ano/Mês' },
-  { format: 'D [de] MMMM [de] YYYY', label: 'Por extenso' },
+  { format: 'YYYYMMDD', label: tr('Compacto') },
+  { format: 'DD-MM-YYYY', label: tr('Brasileiro') },
+  { format: 'YYYY-MM-DD_HH-mm-ss', label: tr('Com hora') },
+  { format: 'YYYY/MM', label: tr('Ano/Mês') },
+  { format: tr(m('D [de] MMMM [de] YYYY')), label: tr('Por extenso') },
 ];
 
 /** Parses EXIF "2024:05:17 14:22:09" into epoch ms (local time). */

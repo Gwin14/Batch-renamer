@@ -1,6 +1,7 @@
 import { memo } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
+import { m, tr, trn, useLang } from '@/i18n';
 import type { PreviewItem } from '@/engine/types';
 import { haptics } from '@/services/haptics';
 import { previewFile } from '@/services/fs';
@@ -15,26 +16,26 @@ import { space, useTheme } from '@/ui/theme';
 function openFileActions(item: PreviewItem) {
   showActions({
     title: item.from,
-    message: item.from !== item.to ? `Vai virar “${item.subfolder ? `${item.subfolder}/` : ''}${item.to}”` : 'Sem alterações com as regras atuais',
+    message: item.from !== item.to ? tr('Vai virar “{{name}}”', { name: `${item.subfolder ? `${item.subfolder}/` : ''}${item.to}` }) : tr('Sem alterações com as regras atuais'),
     options: [
       {
-        label: 'Visualizar',
+        label: tr('Visualizar'),
         icon: { sf: 'eye', md: 'visibility' },
         onPress: async () => {
-          if (!(await previewFile(item.file.uri))) toast('Não há visualização para este tipo de arquivo', { tone: 'info' });
+          if (!(await previewFile(item.file.uri))) toast(tr('Não há visualização para este tipo de arquivo'), { tone: 'info' });
         },
       },
       {
-        label: 'Tirar do lote',
+        label: tr('Tirar do lote'),
         icon: { sf: 'minus.circle', md: 'remove_circle' },
         destructive: true,
         onPress: () => {
           const s = useStudio.getState();
           const index = s.files.findIndex((f) => f.id === item.id);
           s.removeFiles([item.id]);
-          toast('Arquivo removido do lote', {
+          toast(tr('Arquivo removido do lote'), {
             action: {
-              label: 'Desfazer',
+              label: tr('Desfazer'),
               onPress: () => {
                 const st = useStudio.getState();
                 const files = [...st.files];
@@ -50,19 +51,20 @@ function openFileActions(item: PreviewItem) {
 }
 
 const STATUS = {
-  conflict: { tone: 'warning', label: 'Conflito' },
-  error: { tone: 'danger', label: 'Erro' },
-  resolved: { tone: 'accent', label: '+ sufixo' },
+  conflict: { tone: 'warning', label: m('Conflito') },
+  error: { tone: 'danger', label: m('Erro') },
+  resolved: { tone: 'accent', label: m('+ sufixo') },
 } as const;
 
 export const PreviewRow = memo(function PreviewRow({ item, showDiff }: { item: PreviewItem; showDiff: boolean }) {
   const t = useTheme();
+  useLang();
   const changed = item.status !== 'unchanged';
   const badge = item.status in STATUS ? STATUS[item.status as keyof typeof STATUS] : null;
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`${changed ? `${item.from}, vai virar ${item.to}` : `${item.from}, sem alterações`}${item.pairedWith ? `, acompanha ${item.pairedWith}` : ''}`}
+      accessibilityLabel={`${changed ? tr('{{from}}, vai virar {{to}}', { from: item.from, to: item.to }) : tr('{{from}}, sem alterações', { from: item.from })}${item.pairedWith ? tr(', acompanha {{name}}', { name: item.pairedWith }) : ''}`}
       onPress={() => openFileActions(item)}
       onLongPress={() => {
         haptics.rigid();
@@ -85,7 +87,7 @@ export const PreviewRow = memo(function PreviewRow({ item, showDiff }: { item: P
           <View style={styles.folderLine}>
             <Icon sf="link" md="link" size={11} color={t.secondary} />
             <Text variant="caption" tone="secondary" numberOfLines={1} ellipsizeMode="middle" style={{ flexShrink: 1 }}>
-              {item.pairedWith ? `Acompanha ${item.pairedWith}` : item.companions === 1 ? '1 arquivo vinculado' : `${item.companions} arquivos vinculados`}
+              {item.pairedWith ? tr('Acompanha {{name}}', { name: item.pairedWith }) : trn(item.companions ?? 0, '{{n}} arquivo vinculado', '{{n}} arquivos vinculados')}
             </Text>
           </View>
         ) : null}
@@ -95,11 +97,11 @@ export const PreviewRow = memo(function PreviewRow({ item, showDiff }: { item: P
           </Text>
         ) : (
           <Text variant="footnote" tone="tertiary">
-            Sem alterações
+            {tr('Sem alterações')}
           </Text>
         )}
       </View>
-      {badge && <StatusBadge tone={badge.tone} label={badge.label} />}
+      {badge && <StatusBadge tone={badge.tone} label={tr(badge.label)} />}
     </Pressable>
   );
 });

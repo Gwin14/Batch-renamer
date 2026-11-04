@@ -3,6 +3,8 @@ import SwiftUI
 import WidgetKit
 
 /// Opens the app on the quick-rename flow (photo picker + quick preset).
+/// Titles are build-time App Intents metadata, so they are localized by Localizable.xcstrings
+/// (system / per-app language) instead of the App Group language used by the widgets.
 struct OpenQuickRenameIntent: AppIntent {
   static let title: LocalizedStringResource = "Renomear fotos"
   static let description = IntentDescription("Abre o Lote no seletor de fotos com o preset rápido.")

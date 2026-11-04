@@ -8,6 +8,35 @@ struct LoteLockScreenView: View {
 
   var body: some View {
     Group {
+      if !entry.isPro {
+        locked
+      } else {
+        unlocked
+      }
+    }
+    .containerBackground(for: .widget) { Color.clear }
+    .widgetURL(entry.isPro ? LoteLinks.photos : LoteLinks.pro)
+  }
+
+  @ViewBuilder private var locked: some View {
+    switch family {
+    case .accessoryCircular:
+      ZStack {
+        AccessoryWidgetBackground()
+        Image(systemName: "lock.fill").font(.system(size: 18, weight: .semibold))
+      }
+      .widgetAccentable()
+    case .accessoryRectangular:
+      VStack(alignment: .leading, spacing: 1) {
+        Label("Lote Pro", systemImage: "lock.fill").font(.headline).widgetAccentable()
+        Text(L10n.t(.unlockPro)).font(.caption).lineLimit(2)
+      }
+    default:
+      Label(L10n.t(.unlockShort), systemImage: "lock.fill")
+    }
+  }
+
+  @ViewBuilder private var unlocked: some View {
       switch family {
       case .accessoryCircular:
         ZStack {
@@ -21,20 +50,21 @@ struct LoteLockScreenView: View {
       case .accessoryRectangular:
         VStack(alignment: .leading, spacing: 1) {
           Label("Lote", systemImage: "wand.and.rays").font(.headline).widgetAccentable()
-          Text("\(entry.totalRenamed.grouped) renomeados").font(.caption).monospacedDigit()
-          Text(entry.lastLabel.isEmpty ? "Toque para renomear fotos" : "Último: \(entry.lastLabel)")
+          Text("\(entry.totalRenamed.grouped) \(L10n.t(.renamed))").font(.caption).monospacedDigit()
+          Text(entry.lastLabel.isEmpty ? L10n.t(.tapToRename) : L10n.t(.last, entry.lastLabel))
             .font(.caption2).foregroundStyle(.secondary).lineLimit(1)
         }
       default:
-        Label("\(entry.totalRenamed.grouped) renomeados", systemImage: "wand.and.rays")
+        Label("\(entry.totalRenamed.grouped) \(L10n.t(.renamed))", systemImage: "wand.and.rays")
       }
-    }
-    .containerBackground(for: .widget) { Color.clear }
-    .widgetURL(LoteLinks.photos)
   }
 
   private func short(_ n: Int) -> String {
-    n >= 1000 ? String(format: "%.1fk", Double(n) / 1000).replacingOccurrences(of: ".", with: ",") : String(n)
+    guard n >= 1000 else { return String(n) }
+    let f = NumberFormatter()
+    f.locale = L10n.locale
+    f.maximumFractionDigits = 1
+    return (f.string(from: NSNumber(value: Double(n) / 1000)) ?? String(n / 1000)) + "k"
   }
 }
 
@@ -44,8 +74,8 @@ struct LoteLockScreenWidget: Widget {
     StaticConfiguration(kind: kind, provider: LoteProvider()) { entry in
       LoteLockScreenView(entry: entry)
     }
-    .configurationDisplayName("Lote — Tela Bloqueada")
-    .description("Abra a renomeação de fotos direto da Tela Bloqueada.")
+    .configurationDisplayName(L10n.t(.lockName))
+    .description(L10n.t(.lockDescription))
     .supportedFamilies([.accessoryCircular, .accessoryRectangular, .accessoryInline])
   }
 }

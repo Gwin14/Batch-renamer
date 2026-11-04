@@ -3,6 +3,7 @@ import { memo } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, { FadeIn, FadeOut, LinearTransition, useReducedMotion } from 'react-native-reanimated';
 
+import { tr, useLang } from '@/i18n';
 import { RULE_META, summarizeRule } from '@/engine/catalog';
 import type { Rule } from '@/engine/types';
 import { haptics } from '@/services/haptics';
@@ -22,19 +23,19 @@ export function openRuleActions(rule: Rule, index: number, count: number) {
     title: meta.title,
     message: summarizeRule(rule),
     options: [
-      { label: 'Editar', icon: { sf: 'slider.horizontal.3', md: 'tune' }, onPress: () => router.push(`/rules/${rule.id}`) },
-      { label: rule.enabled ? 'Desativar' : 'Ativar', icon: { sf: rule.enabled ? 'pause.circle' : 'play.circle', md: rule.enabled ? 'pause_circle' : 'play_circle' }, onPress: () => s.toggleRule(rule.id) },
-      { label: 'Duplicar', icon: { sf: 'plus.square.on.square', md: 'content_copy' }, onPress: () => s.duplicateRule(rule.id) },
-      ...(index > 0 ? [{ label: 'Mover para cima', icon: { sf: 'arrow.up', md: 'arrow_upward' }, onPress: () => s.moveRule(index, index - 1) }] : []),
-      ...(index < count - 1 ? [{ label: 'Mover para baixo', icon: { sf: 'arrow.down', md: 'arrow_downward' }, onPress: () => s.moveRule(index, index + 1) }] : []),
+      { label: tr('Editar'), icon: { sf: 'slider.horizontal.3', md: 'tune' }, onPress: () => router.push(`/rules/${rule.id}`) },
+      { label: rule.enabled ? tr('Desativar') : tr('Ativar'), icon: { sf: rule.enabled ? 'pause.circle' : 'play.circle', md: rule.enabled ? 'pause_circle' : 'play_circle' }, onPress: () => s.toggleRule(rule.id) },
+      { label: tr('Duplicar'), icon: { sf: 'plus.square.on.square', md: 'content_copy' }, onPress: () => s.duplicateRule(rule.id) },
+      ...(index > 0 ? [{ label: tr('Mover para cima'), icon: { sf: 'arrow.up', md: 'arrow_upward' }, onPress: () => s.moveRule(index, index - 1) }] : []),
+      ...(index < count - 1 ? [{ label: tr('Mover para baixo'), icon: { sf: 'arrow.down', md: 'arrow_downward' }, onPress: () => s.moveRule(index, index + 1) }] : []),
       {
-        label: 'Remover',
+        label: tr('Remover'),
         destructive: true,
         icon: { sf: 'trash', md: 'delete' },
         onPress: () => {
           const removed = s.removeRule(rule.id);
           haptics.light();
-          if (removed) toast(`“${meta.title}” removida`, { action: { label: 'Desfazer', onPress: () => useStudio.getState().insertRule(removed, index) } });
+          if (removed) toast(tr('“{{name}}” removida', { name: meta.title }), { action: { label: tr('Desfazer'), onPress: () => useStudio.getState().insertRule(removed, index) } });
         },
       },
     ],
@@ -43,6 +44,7 @@ export function openRuleActions(rule: Rule, index: number, count: number) {
 
 export const RuleCard = memo(function RuleCard({ rule, index, count }: { rule: Rule; index: number; count: number }) {
   const t = useTheme();
+  useLang();
   const reduce = useReducedMotion();
   const meta = RULE_META[rule.type];
   const summary = summarizeRule(rule);
@@ -52,7 +54,7 @@ export const RuleCard = memo(function RuleCard({ rule, index, count }: { rule: R
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={`${index + 1}. ${meta.title}: ${summary}`}
-        accessibilityHint="Toque para editar, toque longo para mais opções"
+        accessibilityHint={tr('Toque para editar, toque longo para mais opções')}
         onPress={() => router.push(`/rules/${rule.id}`)}
         onLongPress={() => {
           haptics.rigid();
@@ -68,14 +70,14 @@ export const RuleCard = memo(function RuleCard({ rule, index, count }: { rule: R
             <Text variant="headline" numberOfLines={1} style={{ flexShrink: 1 }}>
               {meta.title}
             </Text>
-            {!rule.enabled && <StatusBadge tone="neutral" label="Pausada" />}
+            {!rule.enabled && <StatusBadge tone="neutral" label={tr('Pausada')} />}
           </View>
           <Text variant="footnote" tone="secondary" numberOfLines={1} style={mono ? { fontFamily: type.mono.fontFamily, fontSize: 12.5 } : undefined}>
             {summary}
           </Text>
         </View>
         <Pressable
-          accessibilityLabel={`Mais opções para ${meta.title}`}
+          accessibilityLabel={tr('Mais opções para {{name}}', { name: meta.title })}
           hitSlop={10}
           onPress={() => openRuleActions(rule, index, count)}
           style={({ pressed }) => [styles.more, { opacity: pressed ? 0.4 : 1 }]}
@@ -89,6 +91,7 @@ export const RuleCard = memo(function RuleCard({ rule, index, count }: { rule: R
 
 export function AddRuleRow() {
   const t = useTheme();
+  useLang();
   return (
     <Pressable
       accessibilityRole="button"
@@ -102,7 +105,7 @@ export function AddRuleRow() {
         <Icon sf="plus" md="add" size={18} color={t.accent} weight="bold" />
       </View>
       <Text variant="headline" tone="accent">
-        Adicionar regra
+        {tr('Adicionar regra')}
       </Text>
     </Pressable>
   );

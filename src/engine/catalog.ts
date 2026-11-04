@@ -1,3 +1,5 @@
+import { m, tr } from '../i18n/core';
+
 import type { CaseStyle, Rule, RuleType } from './types';
 
 export interface RuleMeta {
@@ -8,38 +10,56 @@ export interface RuleMeta {
   sf: string;
   /** Material Symbol (Android / web) */
   md: string;
+  /** pt-BR group name (translate with tr when shown) */
   group: 'Texto' | 'Sequência e data' | 'Limpeza' | 'Organização';
 }
 
+/** Title and description are pt-BR source strings, translated on every read. */
+const meta = (type: RuleType, title: string, description: string, sf: string, md: string, group: RuleMeta['group']): RuleMeta => ({
+  type,
+  sf,
+  md,
+  group,
+  get title() {
+    return tr(title);
+  },
+  get description() {
+    return tr(description);
+  },
+});
+
 export const RULES: RuleMeta[] = [
-  { type: 'template', title: 'Novo nome', description: 'Monte o nome inteiro com variáveis', sf: 'textformat.abc', md: 'text_fields', group: 'Texto' },
-  { type: 'replace', title: 'Substituir', description: 'Trocar texto, com suporte a regex', sf: 'arrow.left.arrow.right', md: 'find_replace', group: 'Texto' },
-  { type: 'insert', title: 'Inserir', description: 'Adicionar texto no início, fim ou posição', sf: 'text.insert', md: 'add_notes', group: 'Texto' },
-  { type: 'remove', title: 'Remover', description: 'Cortar caracteres, dígitos ou trechos', sf: 'scissors', md: 'content_cut', group: 'Texto' },
-  { type: 'case', title: 'Maiúsc. / minúsc.', description: 'Título, kebab-case, snake_case…', sf: 'textformat', md: 'match_case', group: 'Texto' },
-  { type: 'swap', title: 'Inverter partes', description: '“Artista - Música” → “Música - Artista”', sf: 'arrow.triangle.swap', md: 'swap_horiz', group: 'Texto' },
-  { type: 'numbering', title: 'Numeração', description: 'Sequência, romanos, letras ou hex', sf: 'number', md: 'tag', group: 'Sequência e data' },
-  { type: 'date', title: 'Data', description: 'Data da captura, criação ou hoje', sf: 'calendar', md: 'calendar_today', group: 'Sequência e data' },
-  { type: 'pad', title: 'Zeros à esquerda', description: '“foto 2” → “foto 002”, ordena certo', sf: 'textformat.123', md: 'pin', group: 'Sequência e data' },
-  { type: 'clean', title: 'Limpar', description: 'Espaços, acentos, emoji e “(1)”', sf: 'wand.and.stars', md: 'mop', group: 'Limpeza' },
-  { type: 'truncate', title: 'Limitar tamanho', description: 'Cortar nomes longos demais', sf: 'arrow.right.to.line', md: 'short_text', group: 'Limpeza' },
-  { type: 'extension', title: 'Extensão', description: 'Minúsculas, trocar ou normalizar', sf: 'doc.badge.gearshape', md: 'extension', group: 'Limpeza' },
-  { type: 'folder', title: 'Organizar em pastas', description: 'Mover para subpastas por ano, tipo…', sf: 'folder.badge.plus', md: 'create_new_folder', group: 'Organização' },
+  meta('template', m('Novo nome'), m('Monte o nome inteiro com variáveis'), 'textformat.abc', 'text_fields', 'Texto'),
+  meta('replace', m('Substituir'), m('Trocar texto, com suporte a regex'), 'arrow.left.arrow.right', 'find_replace', 'Texto'),
+  meta('insert', m('Inserir'), m('Adicionar texto no início, fim ou posição'), 'text.insert', 'add_notes', 'Texto'),
+  meta('remove', m('Remover'), m('Cortar caracteres, dígitos ou trechos'), 'scissors', 'content_cut', 'Texto'),
+  meta('case', m('Maiúsc. / minúsc.'), m('Título, kebab-case, snake_case…'), 'textformat', 'match_case', 'Texto'),
+  meta('swap', m('Inverter partes'), m('“Artista - Música” → “Música - Artista”'), 'arrow.triangle.swap', 'swap_horiz', 'Texto'),
+  meta('numbering', m('Numeração'), m('Sequência, romanos, letras ou hex'), 'number', 'tag', 'Sequência e data'),
+  meta('date', m('Data'), m('Data da captura, criação ou hoje'), 'calendar', 'calendar_today', 'Sequência e data'),
+  meta('pad', m('Zeros à esquerda'), m('“foto 2” → “foto 002”, ordena certo'), 'textformat.123', 'pin', 'Sequência e data'),
+  meta('clean', m('Limpar'), m('Espaços, acentos, emoji e “(1)”'), 'wand.and.stars', 'mop', 'Limpeza'),
+  meta('truncate', m('Limitar tamanho'), m('Cortar nomes longos demais'), 'arrow.right.to.line', 'short_text', 'Limpeza'),
+  meta('extension', m('Extensão'), m('Minúsculas, trocar ou normalizar'), 'doc.badge.gearshape', 'extension', 'Limpeza'),
+  meta('folder', m('Organizar em pastas'), m('Mover para subpastas por ano, tipo…'), 'folder.badge.plus', 'create_new_folder', 'Organização'),
 ];
 
 export const RULE_META: Record<RuleType, RuleMeta> = Object.fromEntries(RULES.map((r) => [r.type, r])) as Record<RuleType, RuleMeta>;
 
-export const CASE_LABELS: Record<CaseStyle, string> = {
-  title: 'Título',
-  sentence: 'Frase',
-  lower: 'minúsculas',
-  upper: 'MAIÚSCULAS',
+const CASE_SOURCE: Record<CaseStyle, string> = {
+  title: m('Título'),
+  sentence: m('Frase'),
+  lower: m('minúsculas'),
+  upper: m('MAIÚSCULAS'),
   camel: 'camelCase',
   pascal: 'PascalCase',
   snake: 'snake_case',
   kebab: 'kebab-case',
-  invert: 'iNVERTER',
+  invert: m('iNVERTER'),
 };
+
+/** Localized labels for each case style. */
+export const CASE_LABELS = new Proxy(CASE_SOURCE, { get: (src, k: string) => tr(src[k as CaseStyle] ?? k) });
 
 const q = (s: string) => `“${s}”`;
 
@@ -47,63 +67,63 @@ const q = (s: string) => `“${s}”`;
 export function summarizeRule(rule: Rule): string {
   switch (rule.type) {
     case 'replace':
-      if (!rule.find) return 'Defina o texto a procurar';
-      return `${q(rule.find)} → ${rule.replace ? q(rule.replace) : 'nada'}${rule.useRegex ? ' · regex' : ''}`;
+      if (!rule.find) return tr('Defina o texto a procurar');
+      return `${q(rule.find)} → ${rule.replace ? q(rule.replace) : tr('nada')}${rule.useRegex ? ' · regex' : ''}`;
     case 'insert': {
-      if (!rule.text) return 'Defina o texto';
-      const where = rule.position === 'start' ? 'no início' : rule.position === 'end' ? 'no fim' : `na posição ${rule.index}`;
+      if (!rule.text) return tr('Defina o texto');
+      const where = rule.position === 'start' ? tr('no início') : rule.position === 'end' ? tr('no fim') : tr('na posição {{i}}', { i: rule.index });
       return `${q(rule.text)} ${where}`;
     }
     case 'remove':
       switch (rule.mode) {
         case 'first':
-          return `Primeiros ${rule.count} caracteres`;
+          return tr('Primeiros {{n}} caracteres', { n: rule.count });
         case 'last':
-          return `Últimos ${rule.count} caracteres`;
+          return tr('Últimos {{n}} caracteres', { n: rule.count });
         case 'range':
-          return `Caracteres ${rule.from} a ${rule.to}`;
+          return tr('Caracteres {{from}} a {{to}}', { from: rule.from, to: rule.to });
         case 'digits':
-          return 'Todos os números';
+          return tr('Todos os números');
         case 'letters':
-          return 'Todas as letras';
+          return tr('Todas as letras');
         case 'symbols':
-          return 'Símbolos e pontuação';
+          return tr('Símbolos e pontuação');
         case 'between':
-          return `Trechos entre ${rule.open} ${rule.close}`;
+          return tr('Trechos entre {{open}} {{close}}', { open: rule.open, close: rule.close });
       }
       return '';
     case 'case':
       return CASE_LABELS[rule.style];
     case 'numbering': {
       const sample = rule.format === 'decimal' ? String(rule.start).padStart(rule.pad, '0') : rule.format === 'roman' ? 'I, II, III' : rule.format === 'alpha' ? 'a, b, c' : 'hex';
-      const where = rule.position === 'start' ? 'no início' : rule.position === 'end' ? 'no fim' : 'substitui o nome';
+      const where = rule.position === 'start' ? tr('no início') : rule.position === 'end' ? tr('no fim') : tr('substitui o nome');
       return `${sample}… ${where}`;
     }
     case 'date': {
-      const src = { taken: 'Captura', created: 'Criação', modified: 'Modificação', now: 'Hoje' }[rule.source];
+      const src = tr({ taken: m('Captura'), created: m('Criação'), modified: m('Modificação'), now: m('Hoje') }[rule.source]);
       return `${src} · ${rule.format}`;
     }
     case 'template':
-      return rule.template || 'Vazio';
+      return rule.template || tr('Vazio');
     case 'extension':
-      return { lower: '.jpg minúsculas', upper: '.JPG maiúsculas', set: `Trocar para .${rule.value || '?'}`, remove: 'Remover extensão', normalize: '.jpeg → .jpg' }[rule.mode];
+      return { lower: tr('.jpg minúsculas'), upper: tr('.JPG maiúsculas'), set: tr('Trocar para .{{ext}}', { ext: rule.value || '?' }), remove: tr('Remover extensão'), normalize: '.jpeg → .jpg' }[rule.mode];
     case 'clean': {
       const parts = [
         rule.removeCopySuffix && '“(1)”',
         rule.removeEmoji && 'emoji',
-        rule.removeAccents && 'acentos',
-        rule.removeSpecial && 'símbolos',
-        rule.spaces !== 'keep' && { underscore: 'espaço → _', dash: 'espaço → -', dot: 'espaço → .', remove: 'sem espaços', keep: '' }[rule.spaces],
+        rule.removeAccents && tr('acentos'),
+        rule.removeSpecial && tr('símbolos'),
+        rule.spaces !== 'keep' && { underscore: tr('espaço → _'), dash: tr('espaço → -'), dot: tr('espaço → .'), remove: tr('sem espaços'), keep: '' }[rule.spaces],
       ].filter(Boolean);
-      return parts.length ? parts.join(' · ') : 'Espaços extras';
+      return parts.length ? parts.join(' · ') : tr('Espaços extras');
     }
     case 'pad':
-      return `Números com ${rule.digits} dígitos`;
+      return tr('Números com {{n}} dígitos', { n: rule.digits });
     case 'swap':
-      return `Separador ${q(rule.separator)}`;
+      return tr('Separador {{sep}}', { sep: q(rule.separator) });
     case 'truncate':
-      return `Máximo ${rule.max} caracteres`;
+      return tr('Máximo {{n}} caracteres', { n: rule.max });
     case 'folder':
-      return rule.template || 'Defina a pasta';
+      return rule.template || tr('Defina a pasta');
   }
 }

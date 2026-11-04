@@ -1,0 +1,10 @@
+Lote is a batch file renamer. No account or login is required.
+
+How to test:
+1. Open the app and finish onboarding (choose "Start with sample files" to get demo files).
+2. In Studio, add a rule (e.g. Numbering or Date) and watch the live preview.
+3. Tap Apply. Then open History and tap Undo to revert the batch.
+
+Lote Pro (auto-renewable subscriptions com.fabiosantos.lote.pro.annual / .monthly and the non-consumable com.fabiosantos.lote.pro.lifetime) unlocks unlimited batches and advanced features. Purchases are handled by StoreKit through RevenueCat. Restore Purchases is available on the paywall.
+
+All file processing happens on-device. Widgets, Lock Screen accessories, the Control Center control and Home Screen quick actions open the app directly in the matching flow.

@@ -1,0 +1,13 @@
+{
+  "ios": {
+    "CFBundleDisplayName": "Lote",
+    "NSPhotoLibraryUsageDescription": "Lote accesses your photos to rename them.",
+    "NSCameraUsageDescription": "Lote uses the camera to take photos that already have the right name.",
+    "NSPhotoLibraryAddUsageDescription": "Lote saves the renamed copies you choose to Photos.",
+    "NSMicrophoneUsageDescription": "Lote uses the microphone when recording videos with the camera."
+  },
+  "android": {
+    "app_name": "Lote",
+    "widget_lote_description": "Rename photos and files with one tap"
+  }
+}

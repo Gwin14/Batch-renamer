@@ -1,3 +1,4 @@
+import { tr } from '../i18n/core';
 import { formatDate } from './date';
 import { renderTemplate, resolveCaptureDate, type TemplateContext } from './template';
 import {
@@ -43,7 +44,7 @@ export function validateRegex(pattern: string): string | null {
     new RegExp(pattern, 'u');
     return null;
   } catch (e) {
-    return e instanceof Error ? e.message : 'Expressão inválida';
+    return e instanceof Error ? e.message : tr('Expressão inválida');
   }
 }
 

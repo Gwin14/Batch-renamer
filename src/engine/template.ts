@@ -1,5 +1,7 @@
 import { dateFromFileName, formatDate } from './date';
 import { applyCase, formatBytes, kindOf, removeAccents, splitName } from './text';
+import { m, tr } from '../i18n/core';
+
 import type { CaseStyle, FileItem, FileKind } from './types';
 
 /** Context available to every variable while computing one file's name. */
@@ -25,56 +27,61 @@ export interface VariableDoc {
   group: 'Nome' | 'Contador' | 'Data' | 'Arquivo' | 'Mídia' | 'Únicos';
 }
 
-/** The catalog shown in the UI (variable picker + help). */
-export const VARIABLES: VariableDoc[] = [
-  { token: '{name}', label: 'Nome atual', description: 'Nome sem extensão, já com as regras anteriores', example: 'IMG_4821', group: 'Nome' },
-  { token: '{original}', label: 'Nome original', description: 'Nome antes de qualquer regra', example: 'IMG_4821', group: 'Nome' },
-  { token: '{ext}', label: 'Extensão', description: 'Extensão sem o ponto', example: 'jpg', group: 'Nome' },
-  { token: '{word:1}', label: 'Palavra', description: 'N-ésima palavra do nome', example: 'IMG', group: 'Nome' },
-  { token: '{n}', label: 'Número', description: 'Sequência 1, 2, 3…', example: '1', group: 'Contador' },
-  { token: '{n:3}', label: 'Número com zeros', description: 'Sequência com 3 dígitos', example: '001', group: 'Contador' },
-  { token: '{n:2:10}', label: 'Começando em 10', description: '{n:dígitos:início}', example: '10', group: 'Contador' },
-  { token: '{fn:2}', label: 'Número na pasta', description: 'Recomeça a cada pasta', example: '01', group: 'Contador' },
-  { token: '{total}', label: 'Total', description: 'Quantidade de arquivos no lote', example: '24', group: 'Contador' },
-  { token: '{taken:YYYY-MM-DD}', label: 'Data da captura', description: 'EXIF ou data no nome; senão criação', example: '2024-05-17', group: 'Data' },
-  { token: '{created:YYYY-MM-DD}', label: 'Data de criação', description: 'Quando o arquivo foi criado', example: '2024-05-17', group: 'Data' },
-  { token: '{modified:YYYY-MM-DD}', label: 'Data de modificação', description: 'Última alteração', example: '2024-06-02', group: 'Data' },
-  { token: '{date:YYYY-MM-DD}', label: 'Hoje', description: 'Data atual', example: '2026-11-02', group: 'Data' },
-  { token: '{taken:HH-mm-ss}', label: 'Hora da captura', description: 'Hora, minuto e segundo', example: '14-22-09', group: 'Data' },
-  { token: '{folder}', label: 'Pasta', description: 'Nome da pasta de origem', example: 'Viagem', group: 'Arquivo' },
-  { token: '{size}', label: 'Tamanho', description: 'Tamanho legível', example: '2,4 MB', group: 'Arquivo' },
-  { token: '{type}', label: 'Tipo', description: 'foto, video, audio, documento…', example: 'foto', group: 'Arquivo' },
-  { token: '{dims}', label: 'Dimensões', description: 'Largura x altura', example: '4032x3024', group: 'Mídia' },
-  { token: '{w}', label: 'Largura', description: 'Largura em pixels', example: '4032', group: 'Mídia' },
-  { token: '{h}', label: 'Altura', description: 'Altura em pixels', example: '3024', group: 'Mídia' },
-  { token: '{orientation}', label: 'Orientação', description: 'retrato, paisagem ou quadrado', example: 'paisagem', group: 'Mídia' },
-  { token: '{duration}', label: 'Duração', description: 'Duração de vídeo/áudio (mm-ss)', example: '01-32', group: 'Mídia' },
-  { token: '{rand:6}', label: 'Aleatório', description: 'Letras e números, estável na prévia', example: 'k3f9qz', group: 'Únicos' },
-  { token: '{uid}', label: 'ID curto', description: 'Identificador único de 8 caracteres', example: '9f2c7a1b', group: 'Únicos' },
+/** pt-BR source of the variable catalog (variable picker + help). */
+const VARIABLE_SOURCE: VariableDoc[] = [
+  { token: '{name}', label: m('Nome atual'), description: m('Nome sem extensão, já com as regras anteriores'), example: 'IMG_4821', group: 'Nome' },
+  { token: '{original}', label: m('Nome original'), description: m('Nome antes de qualquer regra'), example: 'IMG_4821', group: 'Nome' },
+  { token: '{ext}', label: m('Extensão'), description: m('Extensão sem o ponto'), example: 'jpg', group: 'Nome' },
+  { token: '{word:1}', label: m('Palavra'), description: m('N-ésima palavra do nome'), example: 'IMG', group: 'Nome' },
+  { token: '{n}', label: m('Número'), description: m('Sequência 1, 2, 3…'), example: '1', group: 'Contador' },
+  { token: '{n:3}', label: m('Número com zeros'), description: m('Sequência com 3 dígitos'), example: '001', group: 'Contador' },
+  { token: '{n:2:10}', label: m('Começando em 10'), description: m('{n:dígitos:início}'), example: '10', group: 'Contador' },
+  { token: '{fn:2}', label: m('Número na pasta'), description: m('Recomeça a cada pasta'), example: '01', group: 'Contador' },
+  { token: '{total}', label: m('Total'), description: m('Quantidade de arquivos no lote'), example: '24', group: 'Contador' },
+  { token: '{taken:YYYY-MM-DD}', label: m('Data da captura'), description: m('EXIF ou data no nome; senão criação'), example: '2024-05-17', group: 'Data' },
+  { token: '{created:YYYY-MM-DD}', label: m('Data de criação'), description: m('Quando o arquivo foi criado'), example: '2024-05-17', group: 'Data' },
+  { token: '{modified:YYYY-MM-DD}', label: m('Data de modificação'), description: m('Última alteração'), example: '2024-06-02', group: 'Data' },
+  { token: '{date:YYYY-MM-DD}', label: m('Hoje'), description: m('Data atual'), example: '2026-11-02', group: 'Data' },
+  { token: '{taken:HH-mm-ss}', label: m('Hora da captura'), description: m('Hora, minuto e segundo'), example: '14-22-09', group: 'Data' },
+  { token: '{folder}', label: m('Pasta'), description: m('Nome da pasta de origem'), example: m('Viagem'), group: 'Arquivo' },
+  { token: '{size}', label: m('Tamanho'), description: m('Tamanho legível'), example: '2,4 MB', group: 'Arquivo' },
+  { token: '{type}', label: m('Tipo'), description: m('foto, video, audio, documento…'), example: m('foto'), group: 'Arquivo' },
+  { token: '{dims}', label: m('Dimensões'), description: m('Largura x altura'), example: '4032x3024', group: 'Mídia' },
+  { token: '{w}', label: m('Largura'), description: m('Largura em pixels'), example: '4032', group: 'Mídia' },
+  { token: '{h}', label: m('Altura'), description: m('Altura em pixels'), example: '3024', group: 'Mídia' },
+  { token: '{orientation}', label: m('Orientação'), description: m('retrato, paisagem ou quadrado'), example: m('paisagem'), group: 'Mídia' },
+  { token: '{duration}', label: m('Duração'), description: m('Duração de vídeo/áudio (mm-ss)'), example: '01-32', group: 'Mídia' },
+  { token: '{rand:6}', label: m('Aleatório'), description: m('Letras e números, estável na prévia'), example: 'k3f9qz', group: 'Únicos' },
+  { token: '{uid}', label: m('ID curto'), description: m('Identificador único de 8 caracteres'), example: '9f2c7a1b', group: 'Únicos' },
 ];
 
-export const FILTERS: { token: string; description: string }[] = [
-  { token: '|upper', description: 'MAIÚSCULAS' },
-  { token: '|lower', description: 'minúsculas' },
-  { token: '|title', description: 'Título' },
-  { token: '|kebab', description: 'texto-com-hifen' },
-  { token: '|snake', description: 'texto_com_underline' },
+/** The catalog shown in the UI, translated to the current language. */
+export const variables = (): VariableDoc[] => VARIABLE_SOURCE.map((v) => ({ ...v, label: tr(v.label), description: tr(v.description), example: tr(v.example) }));
+
+const FILTER_SOURCE: { token: string; description: string }[] = [
+  { token: '|upper', description: m('MAIÚSCULAS') },
+  { token: '|lower', description: m('minúsculas') },
+  { token: '|title', description: m('Título') },
+  { token: '|kebab', description: m('texto-com-hifen') },
+  { token: '|snake', description: m('texto_com_underline') },
   { token: '|camel', description: 'camelCase' },
-  { token: '|ascii', description: 'Remove acentos' },
-  { token: '|slice:0:8', description: 'Recorta caracteres' },
-  { token: '|pad:4', description: 'Completa com zeros' },
-  { token: '|replace:a:b', description: 'Troca texto' },
-  { token: '|default:x', description: 'Valor se vazio' },
+  { token: '|ascii', description: m('Remove acentos') },
+  { token: '|slice:0:8', description: m('Recorta caracteres') },
+  { token: '|pad:4', description: m('Completa com zeros') },
+  { token: '|replace:a:b', description: m('Troca texto') },
+  { token: '|default:x', description: m('Valor se vazio') },
 ];
+
+export const filters = () => FILTER_SOURCE.map((f) => ({ ...f, description: tr(f.description) }));
 
 const KIND_LABEL: Record<FileKind, string> = {
-  image: 'foto',
+  image: m('foto'),
   video: 'video',
   audio: 'audio',
-  document: 'documento',
-  archive: 'arquivo',
-  code: 'codigo',
-  other: 'outro',
+  document: m('documento'),
+  archive: m('arquivo'),
+  code: m('codigo'),
+  other: m('outro'),
 };
 
 /** Deterministic string hash (FNV-1a) so previews equal the applied result. */
@@ -189,7 +196,7 @@ function resolveVariable(key: string, args: string[], ctx: TemplateContext): str
     case 'bytes':
       return String(file.size);
     case 'type':
-      return KIND_LABEL[kindOf(file.name)];
+      return tr(KIND_LABEL[kindOf(file.name)]);
     case 'w':
       return file.width ? String(file.width) : '';
     case 'h':
@@ -198,7 +205,7 @@ function resolveVariable(key: string, args: string[], ctx: TemplateContext): str
       return file.width && file.height ? `${file.width}x${file.height}` : '';
     case 'orientation':
       if (!file.width || !file.height) return '';
-      return file.width === file.height ? 'quadrado' : file.width > file.height ? 'paisagem' : 'retrato';
+      return file.width === file.height ? tr('quadrado') : file.width > file.height ? tr('paisagem') : tr('retrato');
     case 'duration': {
       if (!file.duration) return '';
       const total = Math.round(file.duration);

@@ -11,3 +11,8 @@ export const hasCustomNative = !isExpoGo && !isWeb;
 
 export const APP_GROUP = 'group.com.fabiosantos.lote';
 export const APP_SCHEME = 'lote';
+
+/** Public pages (GitHub Pages from /docs) and Apple's standard EULA, linked from Settings and the paywall. */
+export const PRIVACY_URL = 'https://gwin14.github.io/Batch-renamer/privacy.html';
+export const SUPPORT_URL = 'https://gwin14.github.io/Batch-renamer/support.html';
+export const TERMS_URL = 'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/';

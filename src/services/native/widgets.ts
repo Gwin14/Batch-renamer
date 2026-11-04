@@ -25,6 +25,8 @@ export async function syncWidgets(snapshot: WidgetSnapshot) {
       store.set('lastCount', snapshot.lastCount);
       store.set('quickPresetName', snapshot.quickPresetName);
       store.set('pendingFiles', snapshot.pendingFiles);
+      store.set('lang', snapshot.lang);
+      store.set('pro', snapshot.pro ? 1 : 0);
       store.set('favorites', snapshot.favorites.map((f) => ({ id: f.id, name: f.name })));
       ExtensionStorage.reloadWidget();
       ExtensionStorage.reloadControls?.();

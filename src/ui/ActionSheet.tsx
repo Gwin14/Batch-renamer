@@ -3,6 +3,7 @@ import Animated, { FadeIn, FadeOut, SlideInDown, SlideOutDown, useReducedMotion 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { create } from 'zustand';
 
+import { tr } from '@/i18n';
 import { haptics } from '@/services/haptics';
 
 import { Icon } from './Icon';
@@ -33,7 +34,7 @@ const useSheet = create<{ request: SheetRequest | null; set: (r: SheetRequest | 
  */
 export function showActions(req: SheetRequest) {
   if (process.env.EXPO_OS === 'ios') {
-    const labels = [...req.options.map((o) => o.label), 'Cancelar'];
+    const labels = [...req.options.map((o) => o.label), tr('Cancelar')];
     const destructive = req.options.map((o, i) => (o.destructive ? i : -1)).filter((i) => i >= 0);
     ActionSheetIOS.showActionSheetWithOptions(
       { title: req.title, message: req.message, options: labels, cancelButtonIndex: labels.length - 1, destructiveButtonIndex: destructive },
@@ -64,7 +65,7 @@ export function ActionSheetHost() {
       {request && (
         <View style={StyleSheet.absoluteFill}>
           <Animated.View entering={FadeIn.duration(180)} exiting={FadeOut.duration(140)} style={[StyleSheet.absoluteFill, { backgroundColor: t.overlay }]}>
-            <Pressable style={StyleSheet.absoluteFill} onPress={close} accessibilityLabel="Fechar" />
+            <Pressable style={StyleSheet.absoluteFill} onPress={close} accessibilityLabel={tr('Fechar')} />
           </Animated.View>
           <Animated.View
             entering={reduce ? FadeIn.duration(150) : SlideInDown.duration(260)}
@@ -100,7 +101,7 @@ export function ActionSheetHost() {
             <Pressable onPress={close} style={({ pressed }) => [styles.option, { backgroundColor: pressed ? t.fill : 'transparent' }]}>
               <Icon sf="xmark" md="close" size={22} color={t.secondary} />
               <Text variant="body" tone="secondary">
-                Cancelar
+                {tr('Cancelar')}
               </Text>
             </Pressable>
           </Animated.View>
