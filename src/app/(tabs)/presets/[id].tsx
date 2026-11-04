@@ -34,11 +34,16 @@ const SAMPLES: FileItem[] = SAMPLE_FILES.slice(0, 5).map((s, i) => ({
 }));
 
 export default function PresetDetail() {
-  useLang();
+  const lang = useLang();
   const t = useTheme();
   const { contentMax } = useLayout();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const preset = usePresets((s) => findPreset(s, id));
+  // Select stable slices: findPreset builds a new object for built-ins on every call,
+  // which as a selector re-renders forever (and loops Stack.Screen setOptions).
+  const custom = usePresets((s) => s.custom);
+  const builtInUsage = usePresets((s) => s.builtInUsage);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- lang: built-in names are translated on read
+  const preset = useMemo(() => findPreset({ custom, builtInUsage }, id), [custom, builtInUsage, id, lang]);
   const quick = usePresets((s) => s.quickPresetId === id);
   const toggleFavorite = usePresets((s) => s.toggleFavorite);
 
